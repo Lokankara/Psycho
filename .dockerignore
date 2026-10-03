@@ -1,0 +1,11 @@
+.git
+.gitignore
+.idea
+.vscode
+.gradle
+build
+out
+target
+data
+**/build
+**/target

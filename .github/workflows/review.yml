@@ -1,0 +1,118 @@
+name: AI Agent Fix
+
+on:
+  issues:
+    types: [opened, edited]
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  agent:
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.issue.body, '/fix') ||
+      contains(github.event.comment.body, '/fix')
+    runs-on: ubuntu-latest
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      OPENAI_MODEL: gpt-4o-mini
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Prepare task context
+        id: context
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const issue = context.payload.issue || context.payload.pull_request;
+            const body = issue?.body || '';
+            const repo = context.repo.owner + '/' + context.repo.repo;
+
+            const summary = `
+            Repo: ${repo}
+            Event: ${context.eventName}
+            Title: ${issue?.title || 'manual'}
+            Body:
+            ${body}
+            `;
+
+            core.setOutput('task', summary);
+
+      - name: Ask AI to diagnose and propose fix
+        id: ai
+        run: |
+          cat > prompt.txt <<'EOF'
+          Ты — senior engineer в репозитории.
+          Проанализируй задачу и дай:
+          1) краткое описание проблемы
+          2) план исправления
+          3) конкретный patch для кода
+          4) список команд для проверки
+
+          Контекст:
+          ${{ steps.context.outputs.task }}
+
+          Также учитывай текущую структуру проекта и состояние файлов.
+          EOF
+
+          curl -sS https://api.openai.com/v1/chat/completions \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $OPENAI_API_KEY" \
+            -d @- <<'JSON' > ai_response.json
+          {
+            "model": "${OPENAI_MODEL}",
+            "messages": [
+              {"role":"system","content":"Ты эксперт по программированию и GitHub Actions. Отвечай строго в JSON формате, без markdown."},
+              {"role":"user","content":"$(cat prompt.txt)"}
+            ],
+            "temperature": 0.2
+          }
+          JSON
+
+          cat ai_response.json
+
+      - name: Parse AI response
+        id: parse
+        run: |
+          python - <<'PY'
+          import json, os
+          p = "ai_response.json"
+          with open(p, "r", encoding="utf-8") as f:
+              data = json.load(f)
+          text = data["choices"][0]["message"]["content"]
+          print(text)
+          with open("ai_result.txt", "w", encoding="utf-8") as out:
+              out.write(text)
+          PY
+
+      - name: Apply patch
+        run: |
+          echo "Here agent would apply file edits based on ai_result.txt"
+          echo "For real projects, parse JSON and modify files with Python/Node or git apply"
+
+      - name: Run tests / validation
+        run: |
+          ./gradlew test || ./mvnw test || echo "No Java build configured"
+
+      - name: Comment result
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('ai_result.txt', 'utf8');
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `AI Agent result:\n\n${body}`
+            });
