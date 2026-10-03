@@ -6,18 +6,9 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-### Vaadin ###
-src/main/bundles/
-src/main/frontend/generated/
-src/main/frontend/generated-flow-imports.js
-src/main/frontend/generated-flow-imports.d.ts
-src/main/resources/META-INF/VAADIN/
-src/main/resources/META-INF/VAADIN/config/
-.vaadin/
-types.d.ts
-vite.generated.ts
-package-lock.json
-pnpm-lock.yaml
+### UI (Vite) ###
+ui/dist/
+ui/node_modules/
 
 ### Local H2 database ###
 data/

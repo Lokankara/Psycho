@@ -1,1 +1,3 @@
 rootProject.name = 'quiz'
+include 'rest'
+include 'ui'
