@@ -1,0 +1,22 @@
+plugins {
+    id 'base'
+    id 'com.github.node-gradle.node' version '7.1.0'
+}
+
+node {
+    download = true
+    version = '22.11.0'
+    npmVersion = '10.9.0'
+    workDir = file("${project.layout.buildDirectory.get()}/nodejs")
+    npmWorkDir = file("${project.layout.buildDirectory.get()}/npm")
+    nodeProjectDir = file(project.projectDir)
+}
+
+tasks.register('npmBuild', NpmTask) {
+    dependsOn tasks.named('npmInstall')
+    args = ['run', 'build']
+}
+
+tasks.named('assemble') {
+    dependsOn 'npmBuild'
+}

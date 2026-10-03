@@ -1,12 +1,15 @@
 package com.unconscious.collective.quiz.service;
 
 import com.unconscious.collective.quiz.domain.archetype.SemanticProfile;
+import com.unconscious.collective.quiz.domain.dto.AssessmentPayload;
 import com.unconscious.collective.quiz.domain.quiz.BipolarQuestion;
+import com.unconscious.collective.quiz.domain.quiz.QuizAnswer;
 import com.unconscious.collective.quiz.domain.value.Pole;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Application-facing facade over the question bank and the scoring engine.
@@ -34,6 +37,11 @@ public class QuizService {
      * with a new subject ID and no matches.
      */
     public SemanticProfile evaluate(Map<String, Pole> answers) {
-        return scoringService.score(questionBank.all(), answers);
+        List<QuizAnswer> converted = answers.entrySet().stream()
+                .map(entry -> new QuizAnswer(entry.getKey(), entry.getValue()))
+                .toList();
+        return scoringService.score(
+                questionBank.all(),
+                new AssessmentPayload(UUID.randomUUID().toString(), converted));
     }
 }

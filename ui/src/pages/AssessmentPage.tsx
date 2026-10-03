@@ -71,9 +71,10 @@ export default function AssessmentPage() {
       </div>
 
       <div>
-        <button
-          type="button"
-          onClick={submit}
+      <button
+        type="button"
+        data-testid="quiz-submit"
+        onClick={submit}
           disabled={!ready || submitting}
           className="rounded-lg bg-indigo-600 px-6 py-3 font-medium text-white transition hover:bg-indigo-500 disabled:opacity-40"
         >

@@ -6,6 +6,7 @@ const links = [
   { to: '/quiz', label: 'Тест' },
   { to: '/history', label: 'История' },
   { to: '/assessment', label: 'Анализ' },
+  { to: '/board', label: 'Kanban' },
 ];
 
 export default function Layout({ children }: { children: ReactNode }) {

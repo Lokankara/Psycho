@@ -7,19 +7,17 @@ import com.unconscious.collective.quiz.domain.archetype.NarrativeArchetype;
 import com.unconscious.collective.quiz.domain.archetype.SemanticProfile;
 import com.unconscious.collective.quiz.domain.dto.AnalysisResult;
 import com.unconscious.collective.quiz.domain.dto.AssessmentPayload;
+import com.unconscious.collective.quiz.domain.history.ExecutionTrace;
+import com.unconscious.collective.quiz.domain.history.HistoryLogger;
 import com.unconscious.collective.quiz.domain.quiz.BipolarQuestion;
-import com.unconscious.collective.quiz.domain.quiz.QuizAnswer;
 import com.unconscious.collective.quiz.domain.value.Coordinates;
-import com.unconscious.collective.quiz.domain.value.Pole;
 import com.unconscious.collective.quiz.domain.value.Vector3D;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Persists completed profiles and exposes the run history.
@@ -32,13 +30,16 @@ public class ResultService {
     private final QuizResultRepository repository;
     private final ArchetypeScoringService scoringService;
     private final SemanticMatchingService matchingService;
+    private final HistoryLogger historyLogger;
 
     public ResultService(QuizResultRepository repository,
                          ArchetypeScoringService scoringService,
-                         SemanticMatchingService matchingService) {
+                         SemanticMatchingService matchingService,
+                         HistoryLogger historyLogger) {
         this.repository = repository;
         this.scoringService = scoringService;
         this.matchingService = matchingService;
+        this.historyLogger = historyLogger;
     }
 
     /**
@@ -69,7 +70,9 @@ public class ResultService {
      *         drive's narrative and the scored octant's shadow
      */
     public AnalysisResult analyze(AssessmentPayload payload, List<BipolarQuestion> questionsBank) {
-        return buildResult(payload.sessionId(), score(payload, questionsBank));
+        SemanticProfile profile = scoringService.score(questionsBank, payload);
+        historyLogger.write(ExecutionTrace.of(payload, profile));
+        return buildResult(payload.sessionId(), profile);
     }
 
     /**
@@ -78,19 +81,10 @@ public class ResultService {
      * @return the analysis identified by the payload's session ID
      */
     public AnalysisResult analyzeAndSave(AssessmentPayload payload, List<BipolarQuestion> questionsBank) {
-        SemanticProfile profile = score(payload, questionsBank);
+        SemanticProfile profile = scoringService.score(questionsBank, payload);
+        historyLogger.write(ExecutionTrace.of(payload, profile));
         save(profile);
         return buildResult(payload.sessionId(), profile);
-    }
-
-    private SemanticProfile score(AssessmentPayload payload, List<BipolarQuestion> questionsBank) {
-        Map<String, Pole> answers = new HashMap<>();
-        for (QuizAnswer answer : payload.answers()) {
-            if (answer.chosenPole() != null) {
-                answers.put(answer.questionId(), answer.chosenPole());
-            }
-        }
-        return scoringService.score(questionsBank, answers);
     }
 
     private AnalysisResult buildResult(String sessionId, SemanticProfile profile) {

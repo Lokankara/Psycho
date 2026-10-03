@@ -2,7 +2,9 @@ package com.unconscious.collective.quiz;
 
 import com.unconscious.collective.quiz.domain.archetype.Octant;
 import com.unconscious.collective.quiz.domain.archetype.SemanticProfile;
+import com.unconscious.collective.quiz.domain.dto.AssessmentPayload;
 import com.unconscious.collective.quiz.domain.quiz.BipolarQuestion;
+import com.unconscious.collective.quiz.domain.quiz.QuizAnswer;
 import com.unconscious.collective.quiz.domain.value.Axis;
 import com.unconscious.collective.quiz.domain.value.Pole;
 import com.unconscious.collective.quiz.service.ArchetypeScoringService;
@@ -34,7 +36,7 @@ class ArchetypeScoringServiceTest {
     @Test
     void mapsEveryOctantToTheExpectedCoordinates() {
         for (Octant expected : Octant.values()) {
-            SemanticProfile profile = service.score(bank.all(), answersFor(expected));
+            SemanticProfile profile = service.score(bank.all(), payload(answersFor(expected)));
             assertEquals(expected, profile.octant(), "Wrong octant for " + expected);
             for (Axis axis : Axis.values()) {
                 double expectedValue = expected.isPositive(axis) ? 1.0 : -1.0;
@@ -45,7 +47,7 @@ class ArchetypeScoringServiceTest {
 
     @Test
     void emptyAnswersProduceZeroCoordinatesAndDefaultOctant() {
-        SemanticProfile profile = service.score(bank.all(), Map.of());
+        SemanticProfile profile = service.score(bank.all(), payload(Map.of()));
         assertEquals(0.0, profile.coordinates().x(), 1e-9);
         assertEquals(0.0, profile.coordinates().y(), 1e-9);
         assertEquals(0.0, profile.coordinates().z(), 1e-9);
@@ -61,9 +63,15 @@ class ArchetypeScoringServiceTest {
                 answers.put(question.id(), flip++ % 2 == 0 ? Pole.NEGATIVE : Pole.POSITIVE);
             }
         }
-        SemanticProfile profile = service.score(bank.all(), answers);
+        SemanticProfile profile = service.score(bank.all(), payload(answers));
         assertEquals(0.0, profile.coordinates().x(), 1e-9);
-//        assertEquals(bank.all().stream().filter(q -> q.axis() == Axis.X).count());
+    }
+
+    private AssessmentPayload payload(Map<String, Pole> answers) {
+        List<QuizAnswer> converted = answers.entrySet().stream()
+                .map(entry -> new QuizAnswer(entry.getKey(), entry.getValue()))
+                .toList();
+        return new AssessmentPayload("session", converted);
     }
 
     private Map<String, Pole> answersFor(Octant octant) {

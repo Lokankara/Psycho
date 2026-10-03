@@ -42,12 +42,15 @@ export default function ResultPage() {
     <section className="flex flex-col gap-6">
       <header className="flex flex-wrap items-center justify-between gap-3 rounded-xl border-l-4 border-indigo-500 bg-slate-900 p-5">
         <div>
-          <h1 className="text-2xl font-bold">{result.archetype}</h1>
-          <p className="text-sm text-slate-400">
+          <h1 className="text-2xl font-bold" data-testid="dashboard-title">{result.archetype}</h1>
+          <p className="text-sm text-slate-400" data-testid="coordinate-label">
             {result.octantName} · {result.coordinateLabel}
           </p>
         </div>
-        <span className="rounded-full bg-indigo-500 px-4 py-1.5 font-semibold text-white">
+        <span
+          className="rounded-full bg-indigo-500 px-4 py-1.5 font-semibold text-white"
+          data-testid="octant-badge"
+        >
           {Math.round(result.confidence * 100)}%
         </span>
       </header>
@@ -56,9 +59,15 @@ export default function ResultPage() {
         <div className="rounded-xl border border-slate-800 bg-slate-900 p-5">
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-400">Профиль осей</h2>
           <div className="flex flex-col gap-4">
-            <AxisBar label="Ось X · Социальный вектор" negative="Индивидуализм" positive="Коллективизм" value={result.x} />
-            <AxisBar label="Ось Y · Вектор изменений" negative="Стабильность" positive="Трансформация" value={result.y} />
-            <AxisBar label="Ось Z · Понятийный вектор" negative="Материализм" positive="Абстракция" value={result.z} />
+            <div data-axis="X">
+              <AxisBar label="Ось X · Социальный вектор" negative="Индивидуализм" positive="Коллективизм" value={result.x} />
+            </div>
+            <div data-axis="Y">
+              <AxisBar label="Ось Y · Вектор изменений" negative="Стабильность" positive="Трансформация" value={result.y} />
+            </div>
+            <div data-axis="Z">
+              <AxisBar label="Ось Z · Понятийный вектор" negative="Материализм" positive="Абстракция" value={result.z} />
+            </div>
           </div>
         </div>
 

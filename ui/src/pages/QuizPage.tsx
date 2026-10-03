@@ -70,9 +70,13 @@ export default function QuizPage() {
         <div className="h-full bg-indigo-500 transition-all" style={{ width: `${percent}%` }} />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div
+        className="grid gap-4 sm:grid-cols-2"
+        data-testid="quiz-question"
+      >
         <button
           type="button"
+          data-pole="NEGATIVE"
           disabled={submitting}
           onClick={() => choose('NEGATIVE')}
           className={`min-h-32 rounded-2xl border p-5 text-left transition ${
@@ -85,6 +89,7 @@ export default function QuizPage() {
         </button>
         <button
           type="button"
+          data-pole="POSITIVE"
           disabled={submitting}
           onClick={() => choose('POSITIVE')}
           className={`min-h-32 rounded-2xl border p-5 text-left transition ${
@@ -103,6 +108,7 @@ export default function QuizPage() {
       <div className="flex justify-between">
         <button
           type="button"
+          data-testid="quiz-next"
           onClick={() => setIndex((current) => Math.max(0, current - 1))}
           disabled={index === 0 || submitting}
           className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-200 disabled:opacity-40"

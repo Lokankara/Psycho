@@ -2,7 +2,9 @@ package com.unconscious.collective.quiz.domain.dto;
 
 import com.unconscious.collective.quiz.domain.quiz.QuizAnswer;
 import com.unconscious.collective.quiz.domain.value.Axis;
+import com.unconscious.collective.quiz.domain.value.Pole;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -21,16 +23,22 @@ public record AssessmentPayload(String sessionId, List<QuizAnswer> answers) {
 
     /**
      * Returns pole signs ({@code -1} or {@code 1}) for answers mapped to the requested
-     * axis, preserving answer order in an unmodifiable list. A null axis also matches
-     * question IDs with no mapping or a null mapping.
+     * axis. Unanswered items (null pole) and question IDs absent from the axis map are
+     * skipped, so the result counts every answered question exactly once; a repeated
+     * question ID contributes its last non-null pole.
      *
-     * @throws NullPointerException if the map is null and answers are present, or a
-     *         selected answer has a null pole
+     * @throws NullPointerException if the axis map is null and answers are present
      */
     public List<Integer> answersFor(Axis axis, Map<String, Axis> questionAxisMap) {
-        return answers.stream()
-                .filter(answer -> questionAxisMap.get(answer.questionId()) == axis)
-                .map(answer -> answer.chosenPole().sign())
-                .toList();
+        Map<String, Pole> resolved = new LinkedHashMap<>();
+        for (QuizAnswer answer : answers) {
+            Pole pole = answer.chosenPole();
+            if (pole == null || questionAxisMap.get(answer.questionId()) != axis) {
+                continue;
+            }
+            resolved.put(answer.questionId(), pole);
+        }
+        return resolved.values().stream().map(Pole::sign).toList();
     }
 }
+
