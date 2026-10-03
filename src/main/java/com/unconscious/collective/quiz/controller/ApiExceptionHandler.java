@@ -18,6 +18,7 @@ public class ApiExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(ApiExceptionHandler.class);
 
+    /** Preserves the HTTP status and returns an error body using the reason, or exception message. */
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<Map<String, String>> handleResponseStatus(ResponseStatusException exception) {
         String message = exception.getReason() != null ? exception.getReason() : exception.getMessage();
@@ -26,6 +27,7 @@ public class ApiExceptionHandler {
                 .body(Map.of("error", message));
     }
 
+    /** Returns HTTP 400 with the exception message, or "Invalid request" when the message is null. */
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> handleIllegalArgument(IllegalArgumentException exception) {
         log.warn("illegal argument: {}", exception.getMessage());

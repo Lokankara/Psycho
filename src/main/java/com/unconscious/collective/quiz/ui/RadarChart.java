@@ -18,7 +18,9 @@ public class RadarChart extends Component {
      * Pushes the radar series to the client.
      *
      * @param labels vertex labels shown in tooltips (e.g. metric names)
-     * @param values one value per label, normalized to {@code [0, 1]}
+     * @param values one value per label, expected in {@code [0, 1]}; values are not clamped
+     * @throws IllegalArgumentException if label and value counts differ
+     * @throws NullPointerException if either list or any label is null
      */
     public void setChartData(List<String> labels, List<Double> values) {
         if (labels.size() != values.size()) {
@@ -35,6 +37,7 @@ public class RadarChart extends Component {
                 "{\"labels\":[" + labelJson + "],\"values\":[" + valueJson + "]}");
     }
 
+    /** Escapes backslashes and double quotes in a label; other characters are left unchanged. */
     private static String escape(String value) {
         return value.replace("\\", "\\\\").replace("\"", "\\\"");
     }

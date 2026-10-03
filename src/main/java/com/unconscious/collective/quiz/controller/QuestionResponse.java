@@ -8,6 +8,7 @@ import com.unconscious.collective.quiz.domain.quiz.BipolarQuestion;
  */
 public record QuestionResponse(String id, Axis axis, String title, String negative, String positive) {
 
+    /** Creates the API question representation, using the axis title as its title. */
     public static QuestionResponse from(BipolarQuestion question) {
         return new QuestionResponse(
                 question.id(),

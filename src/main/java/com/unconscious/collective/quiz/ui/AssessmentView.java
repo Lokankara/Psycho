@@ -83,6 +83,11 @@ public class AssessmentView extends VerticalLayout {
         }
     }
 
+    /**
+     * Requires all questions to be answered, then analyzes the choices and replaces
+     * the displayed result. Incomplete answers and runtime failures from analysis
+     * produce error notifications and leave any previous result displayed.
+     */
     private void processSubmission() {
         List<QuizAnswer> answers = new ArrayList<>();
 
@@ -115,11 +120,13 @@ public class AssessmentView extends VerticalLayout {
         displayResult(result);
     }
 
+    /** Displays an error notification in the middle of the screen for five seconds. */
     private static void showError(String message) {
         Notification notification = Notification.show(message, 5000, Notification.Position.MIDDLE);
         notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
     }
 
+    /** Replaces the result area with the analysis header, radar chart, details, and object ID. */
     private void displayResult(AnalysisResult result) {
         resultContainer.removeAll();
 
@@ -248,6 +255,10 @@ public class AssessmentView extends VerticalLayout {
         return card;
     }
 
+    /**
+     * Creates an axis row for a coordinate in {@code [-1, 1]}, mapping it to a
+     * {@code [0, 1]} progress bar and labeling zero with the positive pole.
+     */
     private static VerticalLayout axisRow(Axis axis, double value) {
         Span name = new Span(axis.name() + " · " + axis.title());
         name.getStyle().set("font-weight", "600").set("font-size", "0.85rem");
@@ -319,6 +330,7 @@ public class AssessmentView extends VerticalLayout {
         return card;
     }
 
+    /** Creates the symbol card, displaying a dash when the symbol list is null or empty. */
     private static VerticalLayout symbolsCard(AnalysisResult result) {
         VerticalLayout list = new VerticalLayout();
         list.setPadding(false);
@@ -360,7 +372,12 @@ public class AssessmentView extends VerticalLayout {
         return row;
     }
 
-    /** Six normalized metrics feeding the radar polygon. */
+    /**
+     * Returns radar metrics in order: rescaled X, Y, Z; confidence; integrity;
+     * and power. Axes map from {@code [-1, 1]} to {@code [0, 1]}; integrity is
+     * one minus the spread of absolute coordinates, and power is their mean.
+     * Each metric is clamped to {@code [0, 1]}, with NaN preserved.
+     */
     private static List<Double> radarValues(AnalysisResult result) {
         Vector3D pos = result.position();
         double ax = Math.abs(pos.x());
@@ -384,6 +401,7 @@ public class AssessmentView extends VerticalLayout {
                 power);
     }
 
+    /** Creates a metric chip showing the value as a rounded percentage, with 1 representing 100%. */
     private static Div metricChip(String icon, String label, double value) {
         Span iconSpan = new Span(icon);
         iconSpan.getStyle()
@@ -425,6 +443,7 @@ public class AssessmentView extends VerticalLayout {
         return chip;
     }
 
+    /** Adds the chip to the grid at the supplied one-based CSS column and row. */
     private static void place(Div grid, Div chip, int column, int row) {
         chip.getStyle()
                 .set("grid-column", String.valueOf(column))

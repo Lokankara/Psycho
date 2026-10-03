@@ -20,6 +20,10 @@ public record SemanticProfile(
         List<ArchetypeMatch> matches
 ) implements Serializable {
 
+    /**
+     * Returns the first match for this profile's octant, falling back to the first
+     * match in list order, or null if the list is empty.
+     */
     public ArchetypeMatch getPrimaryMatch() {
         return matches.stream()
                 .filter(m -> m.octant() == this.octant)
@@ -27,6 +31,10 @@ public record SemanticProfile(
                 .orElse(matches.isEmpty() ? null : matches.get(0));
     }
 
+    /**
+     * Returns an unmodifiable list of matches at or above the inclusive confidence
+     * threshold, preserving their original order.
+     */
     public List<ArchetypeMatch> getMatchesByConfidence(double threshold) {
         return matches.stream()
                 .filter(m -> m.confidence() >= threshold)

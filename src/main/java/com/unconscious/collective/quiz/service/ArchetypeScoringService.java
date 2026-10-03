@@ -25,6 +25,13 @@ import java.util.UUID;
 @Service
 public class ArchetypeScoringService {
 
+    /**
+     * Scores the supplied questions by averaging answered pole signs on each axis.
+     * Missing or null choices and answer IDs absent from the question list are ignored.
+     * Unanswered axes score zero; zero selects the positive side of an octant.
+     *
+     * @return a profile with a new subject ID, raw sums, answer counts, and no matches
+     */
     public SemanticProfile score(List<BipolarQuestion> questions, Map<String, Pole> answers) {
         EnumMap<Axis, Double> rawScores = new EnumMap<>(Axis.class);
         EnumMap<Axis, Integer> counts = new EnumMap<>(Axis.class);
@@ -56,6 +63,7 @@ public class ArchetypeScoringService {
                 List.of());
     }
 
+    /** Returns the mean pole sign, or zero when no answers were counted. */
     private static double normalize(double rawSum, int count) {
         return count == 0 ? 0.0 : rawSum / count;
     }

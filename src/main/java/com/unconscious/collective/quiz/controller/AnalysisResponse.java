@@ -20,6 +20,7 @@ public record AnalysisResponse(
         List<String> symbols,
         double confidence) {
 
+    /** Combines profile coordinates with match labels, symbol names, and confidence for the API. */
     public static AnalysisResponse from(SemanticProfile profile, ArchetypeMatch match) {
         return new AnalysisResponse(
                 profile.coordinates().x(),

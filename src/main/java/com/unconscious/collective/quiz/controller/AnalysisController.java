@@ -39,6 +39,7 @@ public class AnalysisController {
         this.matchingService = matchingService;
     }
 
+    /** Returns the question bank in presentation order with axis titles and both statements. */
     @GetMapping("/questions")
     public List<QuestionResponse> questions() {
         return quizService.questions().stream()
@@ -46,12 +47,23 @@ public class AnalysisController {
                 .toList();
     }
 
+    /**
+     * Returns an assessment analysis with HTTP 200 without saving a history entry.
+     * Duplicate question IDs use their last non-null pole; unanswered axes score zero.
+     */
     @PostMapping("/analyze")
     public ResponseEntity<AnalysisResult> processAssessment(@RequestBody AssessmentPayload payload) {
         AnalysisResult result = resultService.analyze(payload, quizService.questions());
         return ResponseEntity.ok(result);
     }
 
+    /**
+     * Returns a scored and matched profile with HTTP 200 without saving a history entry.
+     * A null or empty answer map is scored as unanswered. Pole names are trimmed and
+     * uppercased; unknown question IDs do not contribute to the score.
+     *
+     * @throws ResponseStatusException with HTTP 400 if any pole value is null or unrecognized
+     */
     @PostMapping
     public ResponseEntity<AnalysisResponse> analyze(@RequestBody AnalysisRequest request) {
         SemanticProfile profile = quizService.evaluate(toAnswers(request.answers()));
@@ -59,6 +71,11 @@ public class AnalysisController {
         return ResponseEntity.ok(AnalysisResponse.from(profile, match));
     }
 
+    /**
+     * Converts pole names keyed by question ID; a null or empty map yields an empty map.
+     *
+     * @throws ResponseStatusException with HTTP 400 if any pole value is null or unrecognized
+     */
     private static Map<String, Pole> toAnswers(Map<String, String> rawAnswers) {
         if (rawAnswers == null || rawAnswers.isEmpty()) {
             return Map.of();
@@ -69,6 +86,12 @@ public class AnalysisController {
                         entry -> toPole(entry.getKey(), entry.getValue())));
     }
 
+    /**
+     * Resolves a trimmed, uppercased pole name.
+     *
+     * @param questionId identifier included in validation errors
+     * @throws ResponseStatusException with HTTP 400 if the value is null or unrecognized
+     */
     private static Pole toPole(String questionId, String rawValue) {
         if (rawValue == null) {
             throw new ResponseStatusException(

@@ -37,6 +37,7 @@ public enum CoreDriveType {
         this.pole = pole;
     }
 
+    /** Returns the fixed drive associated with the octant, independently of coordinate magnitudes. */
     public static CoreDriveType from(Octant octant) {
         return switch (octant) {
             case GUARDIAN_LEADER   -> STABILITY_AND_CONTROL;
@@ -58,6 +59,7 @@ public enum CoreDriveType {
         return description;
     }
 
+    /** Returns the associated axis, or null for a drive without an axis assignment. */
     public Axis axis() {
         return axis;
     }
@@ -66,6 +68,12 @@ public enum CoreDriveType {
         return pole;
     }
 
+    /**
+     * Returns the first declared drive with the given axis and pole.
+     * A null axis can match drives without an axis assignment.
+     *
+     * @throws IllegalArgumentException if no drive matches the pair
+     */
     public static CoreDriveType of(Axis axis, Pole pole) {
         for (CoreDriveType drive : values()) {
             if (drive.axis == axis && drive.pole == pole) {

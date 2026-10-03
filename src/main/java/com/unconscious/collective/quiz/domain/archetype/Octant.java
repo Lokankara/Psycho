@@ -120,6 +120,10 @@ public enum Octant implements Serializable {
         this.shadow = shadow;
     }
 
+    /**
+     * Resolves the octant from coordinate signs, treating zero as positive
+     * and NaN as negative.
+     */
     public static Octant from(Coordinates coordinates) {
         return fromCoordinates(
                 coordinates.x() >= 0,
@@ -136,6 +140,7 @@ public enum Octant implements Serializable {
         };
     }
 
+    /** Returns the octant for the three sign flags; true denotes the positive side of an axis. */
     public static Octant fromCoordinates(boolean xPositive, boolean yPositive, boolean zPositive) {
         return Arrays.stream(values())
                 .filter(o -> o.xPositive == xPositive
@@ -162,6 +167,7 @@ public enum Octant implements Serializable {
         return dominantArchetypes;
     }
 
+    /** Returns the shared, mutable set of structural archetypes for this octant. */
     public Set<StructuralArchetype> structuralArchetypes() {
         return structuralArchetypes;
     }

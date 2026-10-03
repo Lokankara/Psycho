@@ -22,6 +22,10 @@ public class HistoryView extends VerticalLayout {
     private static final DateTimeFormatter FORMATTER =
             DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm").withZone(ZoneId.systemDefault());
 
+    /**
+     * Loads all saved results, newest first, with timestamps displayed in the server's
+     * default time zone. Persistence failures propagate during construction.
+     */
     public HistoryView(ResultService resultService) {
         setSizeFull();
         setAlignItems(Alignment.CENTER);

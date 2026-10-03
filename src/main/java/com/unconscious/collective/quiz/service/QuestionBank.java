@@ -20,10 +20,27 @@ public class QuestionBank {
 
     private final List<BipolarQuestion> questions;
 
+    /**
+     * Loads the shared question bank from {@code /questions.json} in resource order.
+     * Unchecked JSON parsing and mapping errors propagate to the caller.
+     *
+     * @throws IllegalStateException if the resource is missing or closing its stream fails
+     * @throws IllegalArgumentException if a question names an unknown axis
+     * @throws NullPointerException if a parsed question has a null axis
+     */
     public QuestionBank(ObjectMapper objectMapper) {
         this.questions = load(objectMapper);
     }
 
+    /**
+     * Returns an unmodifiable question list from the classpath resource.
+     * Axis names are trimmed and uppercased before lookup. Unchecked JSON parsing
+     * and mapping errors propagate; caught I/O errors become {@link IllegalStateException}.
+     *
+     * @throws IllegalStateException if the resource is missing or closing its stream fails
+     * @throws IllegalArgumentException if a normalized axis name is unknown
+     * @throws NullPointerException if a parsed question has a null axis
+     */
     private static List<BipolarQuestion> load(ObjectMapper objectMapper) {
         try (InputStream in = QuestionBank.class.getResourceAsStream("/questions.json")) {
             if (in == null) {

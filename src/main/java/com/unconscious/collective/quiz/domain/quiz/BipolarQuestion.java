@@ -19,6 +19,7 @@ public record BipolarQuestion(
         String negativeStatement,
         String positiveStatement) implements QuestionItem {
 
+    /** Returns the positive statement for POSITIVE, and the negative statement otherwise, including null. */
     public String statement(Pole pole) {
         return pole == Pole.POSITIVE ? positiveStatement : negativeStatement;
     }

@@ -8,6 +8,7 @@ import java.io.Serializable;
  */
 public record Coordinates(double x, double y, double z) implements Serializable {
 
+    /** Creates coordinates clamped to {@code [-1, 1]}, preserving NaN components. */
     public static Coordinates of(double x, double y, double z) {
         return new Coordinates(clamp(x), clamp(y), clamp(z));
     }
@@ -24,6 +25,7 @@ public record Coordinates(double x, double y, double z) implements Serializable 
         };
     }
 
+    /** Returns the axis pole, treating zero as positive and NaN as negative. */
     public Pole pole(Axis axis) {
         return Pole.ofSign(value(axis));
     }

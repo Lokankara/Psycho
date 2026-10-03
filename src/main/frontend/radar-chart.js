@@ -31,19 +31,23 @@ class RadarChart extends LitElement {
         }
     `;
 
+    /** Returns the canvas container used by the radar chart. */
     render() {
         return html`<div class="frame"><canvas></canvas></div>`;
     }
 
+    /** Recreates the chart after each Lit update using the current chartData. */
     updated() {
         this._draw();
     }
 
+    /** Destroys the chart when the element is disconnected, then runs Lit cleanup. */
     disconnectedCallback() {
         this._destroyChart();
         super.disconnectedCallback();
     }
 
+    /** Destroys and clears the current chart, if one exists. */
     _destroyChart() {
         if (this._chart) {
             this._chart.destroy();
@@ -51,6 +55,12 @@ class RadarChart extends LitElement {
         }
     }
 
+    /**
+     * Replaces the current chart using the labels and values in chartData JSON.
+     * Missing data, invalid JSON, missing labels or values, or an absent canvas
+     * leave the previous chart destroyed without creating a replacement.
+     * JSON null causes a TypeError; chart construction errors also propagate.
+     */
     _draw() {
         this._destroyChart();
 

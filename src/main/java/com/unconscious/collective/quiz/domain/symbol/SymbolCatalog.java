@@ -82,11 +82,22 @@ public final class SymbolCatalog {
         throw new UnsupportedOperationException("Utility class cannot be instantiated");
     }
 
+    /**
+     * Returns the unmodifiable symbol list for an octant in catalog order.
+     *
+     * @throws NullPointerException if the octant is null
+     */
     public static List<Symbol> of(Octant octant) {
         Objects.requireNonNull(octant, "Octant cannot be null");
         return SYMBOLS.getOrDefault(octant, List.of());
     }
 
+    /**
+     * Returns an unmodifiable list of the octant's symbols in the requested category,
+     * preserving catalog order. A null category yields an empty list.
+     *
+     * @throws NullPointerException if the octant is null
+     */
     public static List<Symbol> byCategory(Octant octant, SymbolCategoryType categoryType) {
         return of(octant).stream()
                 .filter(s -> s.categoryType() == categoryType)

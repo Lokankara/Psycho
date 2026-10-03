@@ -67,6 +67,7 @@ public class QuizView extends VerticalLayout {
         render();
     }
 
+    /** Displays the current question and stored choice, or finishes when the index reaches the bank size. */
     private void render() {
         int total = questions.size();
         int index = session.getIndex();
@@ -88,6 +89,7 @@ public class QuizView extends VerticalLayout {
         styleCard(positiveCard, selection == Pole.POSITIVE);
     }
 
+    /** Stores the current choice and immediately advances to the next question or finishes the quiz. */
     private void choose(Pole pole) {
         BipolarQuestion question = questions.get(session.getIndex());
         session.answer(question.id(), pole);
@@ -97,6 +99,7 @@ public class QuizView extends VerticalLayout {
         advance();
     }
 
+    /** Finishes on the last question; otherwise increments the session index and displays the next question. */
     private void advance() {
         if (session.getIndex() >= questions.size() - 1) {
             finish();
@@ -106,6 +109,11 @@ public class QuizView extends VerticalLayout {
         }
     }
 
+    /**
+     * Scores the answers, stores the profile in the session, saves a history entry,
+     * and navigates to the result view. Persistence failures propagate after the
+     * session profile has been set and prevent navigation.
+     */
     private void finish() {
         SemanticProfile profile = quizService.evaluate(session.getAnswers());
         session.setLastProfile(profile);

@@ -35,6 +35,7 @@ public enum NarrativeArchetype implements Archetype {
         this.shadow = shadow;
     }
 
+    /** Returns the first narrative for the drive, or null if none matches, including a null drive. */
     public static NarrativeArchetype from(CoreDriveType coreDrive) {
         return Arrays.stream(values()).filter(archetype -> archetype.getDriver() == coreDrive).findFirst().orElse(null);
     }

@@ -15,6 +15,7 @@ public enum Sign {
         return value;
     }
 
+    /** Returns POSITIVE only for values greater than zero; zero and NaN resolve to NEGATIVE. */
     public static Sign of(double coordinate) {
         return coordinate > 0 ? POSITIVE : NEGATIVE;
     }

@@ -41,6 +41,12 @@ public class ResultService {
         this.matchingService = matchingService;
     }
 
+    /**
+     * Persists a new snapshot of the profile's coordinates and octant with the current time.
+     * Persistence failures propagate to the caller.
+     *
+     * @return the saved entity, including its generated ID
+     */
     public QuizResult save(SemanticProfile profile) {
         Coordinates coordinates = profile.coordinates();
         QuizResult result = new QuizResult(
@@ -54,6 +60,14 @@ public class ResultService {
         return save;
     }
 
+    /**
+     * Scores and matches an assessment without persisting it.
+     * Null pole choices are skipped; the last non-null choice for a duplicate question
+     * ID wins. IDs absent from the supplied bank are ignored, and unanswered axes score zero.
+     *
+     * @return an analysis identified by the payload's session ID, with the dominant
+     *         drive's narrative and the scored octant's shadow
+     */
     public AnalysisResult analyze(AssessmentPayload payload, List<BipolarQuestion> questionsBank) {
         Map<String, Pole> answers = new HashMap<>();
         for (QuizAnswer answer : payload.answers()) {
@@ -79,6 +93,10 @@ public class ResultService {
         );
     }
 
+    /**
+     * Returns all saved results ordered from newest to oldest, without a result limit.
+     * Persistence failures propagate to the caller.
+     */
     public List<QuizResult> recent() {
         return repository.findAllByOrderByCreatedAtDesc();
     }

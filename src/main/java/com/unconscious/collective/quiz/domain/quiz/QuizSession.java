@@ -25,18 +25,22 @@ public class QuizSession implements Serializable {
     @Setter
     private SemanticProfile lastProfile;
 
+    /** Stores the choice for a question, replacing any previous choice for that ID. */
     public void answer(String questionId, Pole pole) {
         answers.put(questionId, pole);
     }
 
+    /** Returns the stored choice, or null if the question is unanswered or its stored choice is null. */
     public Pole answerOf(String questionId) {
         return answers.get(questionId);
     }
 
+    /** Advances the question index without checking the question bank size. */
     public void next() {
         index++;
     }
 
+    /** Moves back one question, leaving the index at zero when already at the start. */
     public void previous() {
         if (index > 0) {
             index--;

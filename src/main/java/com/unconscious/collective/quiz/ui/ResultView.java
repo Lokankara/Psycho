@@ -28,6 +28,10 @@ import java.util.List;
 @PageTitle("Ваш архетип")
 public class ResultView extends VerticalLayout {
 
+    /**
+     * Displays the session's latest profile and its match, or a prompt to take the
+     * quiz when no profile is available. The retake action clears session progress.
+     */
     public ResultView(QuizSession session, SemanticMatchingService matchingService) {
         setSizeFull();
         setAlignItems(Alignment.CENTER);
@@ -91,6 +95,7 @@ public class ResultView extends VerticalLayout {
         add(archetype, octantName, coords, axisBars, info, driveCard, symbolsCard, actions);
     }
 
+    /** Creates a labeled bar mapping a coordinate from {@code [-1, 1]} to {@code [0, 1]}. */
     private static Component axisBar(Axis axis, double value) {
         Span title = new Span("Ось " + axis.name() + " — " + axis.title());
         title.getStyle().set("font-weight", "600");
@@ -127,6 +132,7 @@ public class ResultView extends VerticalLayout {
         return row;
     }
 
+    /** Formats X, Y, and Z with explicit signs and two decimal places using the default locale. */
     private static String formatCoordinates(SemanticProfile profile) {
         return String.format("(%+.2f, %+.2f, %+.2f)",
                 profile.coordinates().x(), profile.coordinates().y(), profile.coordinates().z());
@@ -142,6 +148,7 @@ public class ResultView extends VerticalLayout {
                 .set("background", "#fafafa");
     }
 
+    /** Creates a bar for confidence in {@code [0, 1]} with a rounded percentage label. */
     private static Div confidenceRow(double confidence) {
         Div row = new Div();
         Span label = new Span("Уверенность");
