@@ -26,6 +26,8 @@ import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
@@ -39,6 +41,7 @@ import java.util.UUID;
 public class AssessmentView extends VerticalLayout {
 
     private static final String ACCENT = "#E57373";
+    private static final Logger LOG = LoggerFactory.getLogger(AssessmentView.class);
 
     private final ResultService resultService;
     private final List<BipolarQuestion> questionsBank;
@@ -113,7 +116,8 @@ public class AssessmentView extends VerticalLayout {
             showError(e.getReason() != null ? e.getReason() : e.getMessage());
             return;
         } catch (RuntimeException e) {
-            showError(e.getMessage() != null ? e.getMessage() : "Не удалось выполнить анализ");
+            LOG.error("Analysis failed for session {}", payload.sessionId(), e);
+            showError("Не удалось выполнить анализ");
             return;
         }
 

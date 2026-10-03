@@ -15,6 +15,7 @@ import com.unconscious.collective.quiz.service.SemanticMatchingService;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.ObjectMapper;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -55,9 +56,10 @@ class ResultServiceTest {
 
     @Test
     void analyzeSkipsAnswersWithUnknownPole() {
-        List<QuizAnswer> answers = bank.all().stream()
+        List<QuizAnswer> answers = new ArrayList<>(bank.all().stream()
                 .map(question -> new QuizAnswer(question.id(), Pole.POSITIVE))
-                .toList();
+                .toList());
+        answers.set(0, new QuizAnswer(answers.get(0).questionId(), null));
         AnalysisResult result = service.analyze(
                 new AssessmentPayload("session", answers), bank.all());
 

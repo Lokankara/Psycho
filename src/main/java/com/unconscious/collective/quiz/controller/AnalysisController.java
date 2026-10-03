@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -98,7 +99,7 @@ public class AnalysisController {
                     HttpStatus.BAD_REQUEST, "Pole value for '" + questionId + "' must not be null");
         }
         try {
-            return Pole.valueOf(rawValue.trim().toUpperCase());
+            return Pole.valueOf(rawValue.trim().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException e) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST, "Unrecognized pole '" + rawValue + "' for '" + questionId + "'");
