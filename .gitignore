@@ -12,6 +12,9 @@ ui/node_modules/
 
 ### Local H2 database ###
 data/
+logs/
+kanban/dist/
+result/
 
 ### Build output ###
 target/

@@ -52,7 +52,7 @@ Always prefer `--no-daemon` for CI-like or one-shot runs (matches `.github/workf
 
 ## Hard rules (from `E:\pets\quiz\task\RULES.md`)
 
-- **§2: DO NOT execute any `gradlew` commands** as the agent, and **DO NOT execute any `git` commands**. Produce the exact command for the user/CI to run, then record the result in `PROGRESS.md` / `artifacti_pi.md` when it comes back. The commands above are documentation and hand-off artifacts, not things to run yourself.
+- **§2: DO NOT execute any `gradlew` commands** as the agent, and **DO NOT execute any `git` commands**. Produce the exact command for the user/CI to run, then record the result in `PROGRESS.md` / `artifact_pi.md` when it comes back. The commands above are documentation and hand-off artifacts, not things to run yourself.
 - **§3: no `//` comments in code** (only `//TODO` markers for unknowns, mirrored into `task/current/sprint/pi-1/TODO.md`).
 - **§6:** route command output and runtime logs to `./logs` (`*.log`, `*.err`) - see the `logs` skill.
 

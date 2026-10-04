@@ -4,7 +4,9 @@ import com.unconscious.collective.quiz.domain.archetype.CoreDriveType;
 import com.unconscious.collective.quiz.domain.archetype.ArchetypeMatch;
 import com.unconscious.collective.quiz.domain.archetype.Octant;
 import com.unconscious.collective.quiz.domain.archetype.PersonaArchetype;
+import com.unconscious.collective.quiz.domain.dto.AssessmentPayload;
 import com.unconscious.collective.quiz.domain.quiz.BipolarQuestion;
+import com.unconscious.collective.quiz.domain.quiz.QuizAnswer;
 import com.unconscious.collective.quiz.domain.value.Pole;
 import com.unconscious.collective.quiz.service.ArchetypeScoringService;
 import com.unconscious.collective.quiz.service.QuestionBank;
@@ -12,8 +14,8 @@ import com.unconscious.collective.quiz.service.SemanticMatchingService;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.ObjectMapper;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -26,7 +28,8 @@ class SemanticMatchingServiceTest {
 
     @Test
     void resolvesArchetypeDriveAndSymbolsForStrongProfile() {
-        ArchetypeMatch match = matching.match(scoring.score(bank.all(), allAnswers(Pole.POSITIVE)));
+        ArchetypeMatch match = matching.match(
+                scoring.score(bank.all(), new AssessmentPayload("session", allAnswers(Pole.POSITIVE))));
 
         assertEquals(Octant.PROPHET_IDEOLOGUE, match.octant());
         assertEquals(PersonaArchetype.EVERYMAN, match.archetype());
@@ -37,7 +40,7 @@ class SemanticMatchingServiceTest {
 
     @Test
     void picksTheDriveOfTheStrongestAxis() {
-        Map<String, Pole> answers = new HashMap<>();
+        List<QuizAnswer> answers = new ArrayList<>();
         int x = 0;
         int y = 0;
         for (BipolarQuestion question : bank.all()) {
@@ -46,18 +49,17 @@ class SemanticMatchingServiceTest {
                 case Y -> (y++ % 2 == 0) ? Pole.NEGATIVE : Pole.POSITIVE;
                 case Z -> Pole.POSITIVE;
             };
-            answers.put(question.id(), pole);
+            answers.add(new QuizAnswer(question.id(), pole));
         }
 
-        ArchetypeMatch match = matching.match(scoring.score(bank.all(), answers));
+        ArchetypeMatch match = matching.match(
+                scoring.score(bank.all(), new AssessmentPayload("session", answers)));
         assertEquals(CoreDriveType.ABSTRACT_MEANING, match.coreDrive());
     }
 
-    private Map<String, Pole> allAnswers(Pole pole) {
-        Map<String, Pole> answers = new HashMap<>();
-        for (BipolarQuestion question : bank.all()) {
-            answers.put(question.id(), pole);
-        }
-        return answers;
+    private List<QuizAnswer> allAnswers(Pole pole) {
+        return bank.all().stream()
+                .map(question -> new QuizAnswer(question.id(), pole))
+                .toList();
     }
 }

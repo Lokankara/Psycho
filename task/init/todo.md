@@ -1,7 +1,7 @@
 # TODO: Collective Unconscious Engine
 
 ## Этап 1. Инфраструктура
-- [ ] Настроить `build.gradle`: Java 25 + preview features, Spring Boot 3.4+, Lombok-свободный стиль, JUnit 5
+- [ ] Настроить `build.gradle`: Java 25, Spring Boot 4+, JUnit 6
 - [ ] Проверить `settings.gradle` и структуру `src/main/java/com/unconscious.collective`
 - [ ] Добавить `application.yml` (порт, виртуальные потоки, логирование)
 

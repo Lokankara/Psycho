@@ -17,6 +17,13 @@ tasks.register('npmBuild', NpmTask) {
     args = ['run', 'build']
 }
 
+tasks.register('bootRun', NpmTask) {
+    description = 'Runs the dashboard-ui development server'
+    group = 'application'
+    dependsOn tasks.named('npmInstall')
+    args = ['run', 'dev']
+}
+
 tasks.named('assemble') {
     dependsOn 'npmBuild'
 }

@@ -10,7 +10,7 @@ description: Route, name and inspect project logs in the ./logs directory per ta
 - Route **all system outputs, execution errors, and application runtime logs** to `E:\pets\quiz\logs`.
 - Extensions: `*.log` for normal output, `*.err` for errors/stack traces.
 - Provide the analysis command: `./scripts/analyze_logs.sh --path=./logs`
-- §5/Post-Execution: after every step, **verify log outputs in `./logs`** and record the execution details plus the conventional commit message in `task/current/sprint/pi-1/artifacti_pi.md`.
+- §5/Post-Execution: after every step, **verify log outputs in `./logs`** and record the execution details plus the conventional commit message in `task/current/sprint/pi-1/artifact_pi.md`.
 
 Current state: `logs/` contains only `.gitkeep` (the directory exists but nothing is written there yet - flagged in `task/current/sprint/review.md`). `.gitignore` does **not** ignore `logs/`, so log files would be committed; prefer short-lived files and clean them with the commands below when they are no longer needed.
 
@@ -85,11 +85,11 @@ Get-ChildItem logs -Include *.log,*.err -Recurse |
 | Gradle test results (XML) | `build\test-results\test\*.xml` |
 | Gradle problems report | `build\reports\problems\` |
 | Vite build log | console of `:ui:npmBuild` (tee it into `logs/` if it must be kept) |
-| Execution history JSON | `task/history/result_YYYYMMDD_HHMMSS.json` (written by `HistoryLogger`, separate from `./logs`) |
+| Execution history JSON | `task/history/result_YYYYMMDD_HHMMSS.json` (written by `HistoryResult`, separate from `./logs`) |
 
 ## Checklist per task (RULES.md §5-6)
 
 1. Before editing: write planned steps to `PROGRESS.md`.
 2. During: tee command output into `logs/<source>-<timestamp>.log` / `.err`.
 3. After: run `./scripts/analyze_logs.sh --path=./logs`, confirm no unexpected `ERROR|Exception|FAILED` lines.
-4. Record the step, test results, and conventional commit message in `artifacti_pi.md`.
+4. Record the step, test results, and conventional commit message in `artifact_pi.md`.

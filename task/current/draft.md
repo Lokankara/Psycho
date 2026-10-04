@@ -38,7 +38,7 @@ The determinism story can't pass until scoring is deterministic.
 
 ## Phase 1 — JSON execution history (§2)
 
-- `HistoryLogger` writing `task/history/result_YYYYMMDD_HHMMSS.json` per run.
+- `HistoryResult` writing `task/history/result_YYYYMMDD_HHMMSS.json` per run.
 - Payload: answers, per-axis `{sum, count}`, coordinates __before and after__ rounding, octant, payload hash, timestamp.
 - Acceptance: identical payload hash ⇒ identical `x/y/z/octant`.
 

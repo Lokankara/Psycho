@@ -14,7 +14,7 @@ Execute an end-to-end bug investigation, implement BDD testing using JBehave, pe
 
 ### 2. History Logging & Bug Investigation
 - **JSON Serialization:**
-    - Save every test execution result and coordinate calculation state into structured JSON files under `/task/history/` (e.g., `result_YYYYMMDD_HHMMSS.json`).
+    - Save every test execution result and coordinate calculation state into structured JSON files under `/result/history/` (e.g., `result_YYYYMMDD_HHMMSS.json`).
 - **Logic Investigation:**
     - Analyze differences in Z-axis calculations (`-1.00` vs `-0.67`) across historical runs.
     - Locate floating-point rounding issues, missing axis answers, or state leakage in `ScoringService`.
