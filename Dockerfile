@@ -1,9 +1,16 @@
-FROM eclipse-temurin:25-jdk
+FROM eclipse-temurin:25-jdk AS build
 WORKDIR /workspace
 
 COPY . .
 RUN chmod +x gradlew
+RUN ./gradlew :rest:bootJar --no-daemon
 
-EXPOSE 8080 8081 5173 5174
+FROM eclipse-temurin:25-jre
+WORKDIR /app
 
-CMD ["./gradlew", ":rest:bootRun", ":ui:bootRun", ":kanban:bootRun", ":agile:bootRun", "--parallel"]
+COPY --from=build /workspace/rest/build/libs/*.jar /app/app.jar
+RUN mkdir -p /app/data
+
+EXPOSE 8080
+
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]

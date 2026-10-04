@@ -23,28 +23,28 @@ import org.springframework.web.server.ResponseStatusException;
 @RequestMapping("/api/agile")
 public class AgileController {
 
-    private final AgileBoardService board;
+    private final AgileBoardService boardService;
 
     public AgileController(AgileBoardService board) {
-        this.board = board;
+        this.boardService = board;
     }
 
     @GetMapping("/board")
     public BoardResponse board(@RequestParam(required = false) Long programIncrementId,
                                @RequestParam(required = false) Long sprintId) {
-        return board.board(programIncrementId, sprintId);
+        return boardService.board(programIncrementId, sprintId);
     }
 
     @PatchMapping("/stories/{id}/column")
     public ResponseEntity<StoryCard> moveStory(@PathVariable Long id, @RequestBody MoveRequest request) {
-        return board.moveStory(id, request)
+        return boardService.moveStory(id, request)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PatchMapping("/tasks/{id}/column")
     public ResponseEntity<TaskCard> moveTask(@PathVariable Long id, @RequestBody MoveRequest request) {
-        return board.moveTask(id, request)
+        return boardService.moveTask(id, request)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -52,7 +52,7 @@ public class AgileController {
     @PostMapping("/bdd-execution")
     public BddExecutionResponse recordExecution(@RequestBody BddExecutionRequest request) {
         try {
-            return board.recordExecution(request.bddStory(), request.status());
+            return boardService.recordExecution(request.bddStory(), request.status());
         } catch (IllegalArgumentException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
         }
