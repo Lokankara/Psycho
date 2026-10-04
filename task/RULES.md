@@ -20,10 +20,10 @@
 - **Test-Driven Development (TDD):** Write failing test cases before implementing any production code (Red -> Green -> Refactor).
 
 #### 5. Step-by-Step State Tracking & Artifacts
-- **BEFORE EDITING ANY FILE:** Log the exact step and planned modifications into `PROGRESS.md`.
+- **BEFORE EDITING ANY FILE:** Log the exact step and planned modifications into `/task/PROGRESS.md`.
 - **FOR EACH COMPLETED STEP:** 
   1. Generate a conventional git commit message (formatted as a text artifact, do not run git).
-  2. Append the completed step details, test results, and commit message into `artifacti_pi.md`.
+  2. Append the completed step details, test results, and commit message into `artifact_pi.md`.
 
 #### 6. Logging & Analytics Specification
 - Route all system outputs, execution errors, and application runtime logs to the `./logs` directory (`*.log` and `*.err`).
@@ -52,4 +52,4 @@ For every task, execute the following sequence:
 5. **Post-Execution & Artifact Generation:**
    - Verify log outputs in `./logs`.
    - Formulate conventional commit message.
-   - Record execution details and commit message in `artifacti_pi.md`.
+   - Record execution details and commit message in `artifact_pi.md`.

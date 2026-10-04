@@ -5,9 +5,9 @@
 * **Root Cause:** Inconsistent coordinate calculations (`-1.00` vs `-0.67` on $Z$-axis) stemmed from two divergent paths: manual map iterations in `ResultService` vs. unbounded division in `ArchetypeScoringService`. Answers without explicit pole assignments modified total count $N$, skewing normalizations.
 * **Fix Strategy:** Isolated calculation logic inside `ArchetypeScoringService.score()`. Handled `null` poles, deduplicated inputs per question ID, and enforced deterministic 2-decimal rounding (`Math.round(val * 100.0) / 100.0`).
 
-#### 2. JSON History Logging (`/task/history/`)
+#### 2. JSON History Result (`/result/history/`)
 
-* Built `HistoryLogger` to write execution traces to `/task/history/result_YYYYMMDD_HHMMSS.json`.
+* Built `HistoryResult` to write execution traces to `/result/history/result_YYYYMMDD_HHMMSS.json`.
 * Logged fields: session ID, raw/normalized score sums, axis counts, payload hash, resulting coordinates, matched `Octant`, and timestamp.
 
 #### 3. BDD E2E Testing with JBehave

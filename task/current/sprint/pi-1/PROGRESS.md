@@ -8,9 +8,9 @@
 - `ResultService` delegates scoring to `ArchetypeScoringService` (no manual HashMap loop).
 - **Action**: Add `ArchetypeScoringServiceDeterminismTest` to lock the fix with a regression test.
 
-### Phase 1 — Wire HistoryLogger into ResultService
-- Inject `HistoryLogger` into `ResultService` constructor.
-- Call `historyLogger.write(ExecutionTrace.of(payload, profile))` inside `analyzeAndSave()` after scoring, before/after persistence.
+### Phase 1 — Wire HistoryResult into ResultService
+- Inject `HistoryResult` into `ResultService` constructor.
+- Call `historyResult.write(ExecutionTrace.of(payload, profile))` inside `analyzeAndSave()` after scoring, before/after persistence.
 - **Files**: `rest/.../service/ResultService.java`
 
 ### Phase 2 — Bug Investigation & Reporting

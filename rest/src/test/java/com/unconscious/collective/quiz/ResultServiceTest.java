@@ -6,7 +6,7 @@ import com.unconscious.collective.quiz.domain.archetype.Octant;
 import com.unconscious.collective.quiz.domain.archetype.PersonaArchetype;
 import com.unconscious.collective.quiz.domain.dto.AnalysisResult;
 import com.unconscious.collective.quiz.domain.dto.AssessmentPayload;
-import com.unconscious.collective.quiz.domain.history.HistoryLogger;
+import com.unconscious.collective.quiz.domain.history.HistoryResult;
 import com.unconscious.collective.quiz.domain.quiz.QuizAnswer;
 import com.unconscious.collective.quiz.domain.value.Pole;
 import com.unconscious.collective.quiz.service.ArchetypeScoringService;
@@ -28,19 +28,21 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ResultServiceTest {
 
-    @TempDir
-    Path historyDir;
-
     private final QuestionBank bank = new QuestionBank(new ObjectMapper());
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final HistoryLogger historyLogger =
-            new HistoryLogger(historyDir.toString(), objectMapper);
-    private final ResultService service =
-            new ResultService(null, new ArchetypeScoringService(), new SemanticMatchingService(), historyLogger);
+    private final Path historyDir;
+    private final HistoryResult historyResult;
+    private final ResultService service;
+
+    ResultServiceTest(@TempDir Path historyDir) {
+        this.historyDir = historyDir;
+        this.historyResult = new HistoryResult(historyDir.toString(), objectMapper);
+        this.service = new ResultService(null, new ArchetypeScoringService(),
+                new SemanticMatchingService(), historyResult);
+    }
 
     @Test
     void analyzeScoresAllPositiveAnswersIntoTheExpectedOctant() {
@@ -87,9 +89,9 @@ class ResultServiceTest {
             List<Path> jsonFiles = files
                     .filter(path -> path.getFileName().toString().startsWith("result_"))
                     .toList();
-            assertFalse(jsonFiles.isEmpty(), "HistoryLogger must write a result_*.json file");
-            Path content = Files.readString(jsonFiles.get(0));
-            assertTrue(content.toString().contains("\"sessionId\": \"session\""));
+            assertFalse(jsonFiles.isEmpty(), "HistoryResult must write a result_*.json file");
+            String content = Files.readString(jsonFiles.get(0));
+            assertEquals("session", objectMapper.readTree(content).path("sessionId").asText());
         }
     }
 

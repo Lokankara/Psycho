@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import Layout from './components/Layout';
 import WelcomePage from './pages/WelcomePage';
@@ -5,7 +6,16 @@ import QuizPage from './pages/QuizPage';
 import ResultPage from './pages/ResultPage';
 import HistoryPage from './pages/HistoryPage';
 import AssessmentPage from './pages/AssessmentPage';
-import BoardPage from '../../kanban/src/BoardPage';
+
+const KANBAN_URL = import.meta.env.VITE_KANBAN_URL ?? 'http://localhost:5174';
+
+function KanbanRedirect() {
+  useEffect(() => {
+    window.location.replace(KANBAN_URL);
+  }, []);
+
+  return null;
+}
 
 export default function App() {
   return (
@@ -16,7 +26,7 @@ export default function App() {
         <Route path="/result" element={<ResultPage />} />
         <Route path="/history" element={<HistoryPage />} />
         <Route path="/assessment" element={<AssessmentPage />} />
-        <Route path="/board" element={<BoardPage />} />
+        <Route path="/board" element={<KanbanRedirect />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Layout>

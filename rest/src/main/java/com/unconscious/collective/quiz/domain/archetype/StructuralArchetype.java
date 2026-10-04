@@ -1,7 +1,5 @@
 package com.unconscious.collective.quiz.domain.archetype;
 
-import lombok.Getter;
-
 public enum StructuralArchetype implements Archetype {
     EGO("Эго (Ego)", CoreDriveType.POWER_AND_DOMINANCE,
             "Центр сознания, отвечающий за личностную идентичность",
@@ -24,7 +22,6 @@ public enum StructuralArchetype implements Archetype {
 
     private final String title;
     private final CoreDriveType driver;
-    @Getter
     private final String functionDescription;
     private final Shadow shadow;
 
@@ -48,5 +45,9 @@ public enum StructuralArchetype implements Archetype {
     @Override
     public CoreDriveType getDriver() {
         return driver;
+    }
+
+    public String getFunctionDescription() {
+        return functionDescription;
     }
 }

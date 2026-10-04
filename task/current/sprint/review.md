@@ -11,7 +11,7 @@
 | § | Requirement | Status per `AC.md` |
 |---|---|---|
 | 1 | POM locators + JBehave steps | ✅ `Locators.java`, Page Objects |
-| 2 | JSON history + Z-axis investigation | ✅ `HistoryLogger` (investigation partial — see §3) |
+| 2 | JSON history + Z-axis investigation | ✅ `HistoryResult` (investigation partial — see §3) |
 | 3 | `verify_coordinate_calculation.story` determinism | ✅ story + `e2eTest` runner |
 | 4 | `/task/*.md` artifacts (3 exact filenames) | ⚠️ claimed in `AC.md`, **unverified** |
 | 5 | JPA entities (exact list of 6) | ✅ implemented |
@@ -52,7 +52,7 @@
 | No `gradlew` / `git` execution | ✅ observed this session |
 | No `//` comments (except `//TODO`) | ⚠️ unverified in code |
 | `PROGRESS.md` pre-edit logging | ⚠️ no recent entries observed |
-| Commit message + step in `artifacti_pi.md` | ⚠️ unverified |
+| Commit message + step in `artifact_pi.md` | ⚠️ unverified |
 | Logs to `./logs` + `analyze_logs.sh` | ⚠️ `logs/` exists, output unverified |
 | `//TODO` → `TODO.md` | ✅ `TODO.md` present, but not formatted as task/question pairs |
 
@@ -74,5 +74,5 @@
 1. Reconcile `draft.md` vs `AC.md` state; delete or archive the superseded P1–P7 plan block.
 2. Enforce spec filenames verbatim for all `/task/*.md` artifacts.
 3. Restructure `TODO.md` as checkboxes with spec-section tags (`§1`…`§6`) and mark completed items.
-4. Append test/build evidence and the conventional commit artifact to `artifacti_pi.md` per RULES §5.
+4. Append test/build evidence and the conventional commit artifact to `artifact_pi.md` per RULES §5.
 5. Amend the spec's `ScoringService` name to `ArchetypeScoringService` (or alias note) to stop drift.

@@ -1,5 +1,8 @@
 package com.unconscious.collective.quiz.service;
 
+import java.time.Instant;
+import java.util.List;
+
 import com.unconscious.collective.quiz.dao.QuizResult;
 import com.unconscious.collective.quiz.dao.QuizResultRepository;
 import com.unconscious.collective.quiz.domain.archetype.ArchetypeMatch;
@@ -8,16 +11,13 @@ import com.unconscious.collective.quiz.domain.archetype.SemanticProfile;
 import com.unconscious.collective.quiz.domain.dto.AnalysisResult;
 import com.unconscious.collective.quiz.domain.dto.AssessmentPayload;
 import com.unconscious.collective.quiz.domain.history.ExecutionTrace;
-import com.unconscious.collective.quiz.domain.history.HistoryLogger;
+import com.unconscious.collective.quiz.domain.history.HistoryResult;
 import com.unconscious.collective.quiz.domain.quiz.BipolarQuestion;
 import com.unconscious.collective.quiz.domain.value.Coordinates;
 import com.unconscious.collective.quiz.domain.value.Vector3D;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-
-import java.time.Instant;
-import java.util.List;
 
 /**
  * Persists completed profiles and exposes the run history.
@@ -30,16 +30,16 @@ public class ResultService {
     private final QuizResultRepository repository;
     private final ArchetypeScoringService scoringService;
     private final SemanticMatchingService matchingService;
-    private final HistoryLogger historyLogger;
+    private final HistoryResult historyResult;
 
     public ResultService(QuizResultRepository repository,
-                         ArchetypeScoringService scoringService,
-                         SemanticMatchingService matchingService,
-                         HistoryLogger historyLogger) {
+            ArchetypeScoringService scoringService,
+            SemanticMatchingService matchingService,
+            HistoryResult historyResult) {
         this.repository = repository;
         this.scoringService = scoringService;
         this.matchingService = matchingService;
-        this.historyLogger = historyLogger;
+        this.historyResult = historyResult;
     }
 
     /**
@@ -67,11 +67,11 @@ public class ResultService {
      * ID wins. IDs absent from the supplied bank are ignored, and unanswered axes score zero.
      *
      * @return an analysis identified by the payload's session ID, with the dominant
-     *         drive's narrative and the scored octant's shadow
+     * drive's narrative and the scored octant's shadow
      */
     public AnalysisResult analyze(AssessmentPayload payload, List<BipolarQuestion> questionsBank) {
         SemanticProfile profile = scoringService.score(questionsBank, payload);
-        historyLogger.write(ExecutionTrace.of(payload, profile));
+        historyResult.write(ExecutionTrace.of(payload, profile));
         return buildResult(payload.sessionId(), profile);
     }
 
@@ -82,7 +82,7 @@ public class ResultService {
      */
     public AnalysisResult analyzeAndSave(AssessmentPayload payload, List<BipolarQuestion> questionsBank) {
         SemanticProfile profile = scoringService.score(questionsBank, payload);
-        historyLogger.write(ExecutionTrace.of(payload, profile));
+        historyResult.write(ExecutionTrace.of(payload, profile));
         save(profile);
         return buildResult(payload.sessionId(), profile);
     }

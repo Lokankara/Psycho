@@ -4,6 +4,12 @@ import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  server: {
+    port: 5174,
+    proxy: {
+      '/api/agile': 'http://localhost:8081',
+    },
+  },
   build: {
     outDir: 'dist',
     emptyOutDir: true,

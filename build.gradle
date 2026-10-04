@@ -1,2 +1,9 @@
 group = 'com.unconscious.collective'
 version = '0.0.1-SNAPSHOT'
+
+tasks.register('runAll') {
+    description = 'Starts quiz-api, quiz-ui, dashboard-ui and kanban-api'
+    group = 'application'
+
+    dependsOn ':rest:bootRun', ':agile:bootRun', ':ui:bootRun', ':kanban:bootRun'
+}
