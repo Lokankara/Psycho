@@ -1,6 +1,6 @@
 package com.unconscious.collective.quiz.domain.archetype;
 
-import com.unconscious.collective.quiz.domain.symbol.Symbol;
+import com.unconscious.collective.quiz.domain.quiz.symbol.Symbol;
 
 import java.io.Serializable;
 import java.util.List;

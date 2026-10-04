@@ -26,7 +26,7 @@ public class QuizService {
     }
 
     /** Returns the shared, unmodifiable question bank in presentation order. */
-    public List<BipolarQuestion> questions() {
+    public List<BipolarQuestion> getQuestions() {
         return questionBank.all();
     }
 

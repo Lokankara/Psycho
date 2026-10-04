@@ -1,0 +1,81 @@
+{
+  "name": "История тестов — Нестабильность осей",
+  "desc": "Лог зафиксированных отклонений координат по оси X при идентичном октанте",
+  "closed": false,
+  "lists": [
+    {
+      "id": "list-x-drift",
+      "name": "X-Axis Drift Investigation",
+      "closed": false,
+      "pos": 1000
+    },
+    {
+      "id": "list-backlog",
+      "name": "Backlog / Tasks",
+      "closed": false,
+      "pos": 2000
+    }
+  ],
+  "cards": [
+    {
+      "id": "run-20261004-212519",
+      "idList": "list-x-drift",
+      "name": "Run #3: (-0.33, -1.00, -1.00)",
+      "desc": "Timestamp: 04.10.2026, 21:25:19\nOctant: Мастер / Прагматик\nX: -0.33\nY: -1.00\nZ: -1.00",
+      "closed": false,
+      "pos": 1000,
+      "labels": [
+        {
+          "id": "lbl-drift",
+          "name": "X-Drift: High (-0.33)",
+          "color": "red"
+        }
+      ]
+    },
+    {
+      "id": "run-20261004-174942",
+      "idList": "list-x-drift",
+      "name": "Run #2: (-1.00, -1.00, -1.00)",
+      "desc": "Timestamp: 04.10.2026, 17:49:42\nOctant: Мастер / Прагматик\nX: -1.00\nY: -1.00\nZ: -1.00",
+      "closed": false,
+      "pos": 2000,
+      "labels": [
+        {
+          "id": "lbl-baseline",
+          "name": "Baseline (-1.00)",
+          "color": "green"
+        }
+      ]
+    },
+    {
+      "id": "run-20261004-172416",
+      "idList": "list-x-drift",
+      "name": "Run #1: (-0.67, -1.00, -1.00)",
+      "desc": "Timestamp: 04.10.2026, 17:24:16\nOctant: Мастер / Прагматик\nX: -0.67\nY: -1.00\nZ: -1.00",
+      "closed": false,
+      "pos": 3000,
+      "labels": [
+        {
+          "id": "lbl-drift-mid",
+          "name": "X-Drift: Mid (-0.67)",
+          "color": "yellow"
+        }
+      ]
+    },
+    {
+      "id": "card-102",
+      "idList": "list-backlog",
+      "name": "Implement JBehave BDD E2E Suite",
+      "desc": "Add verify_coordinate_calculation.story and POM Page Objects.",
+      "closed": false,
+      "pos": 1000,
+      "labels": [
+        {
+          "id": "label-feature",
+          "name": "Feature",
+          "color": "green"
+        }
+      ]
+    }
+  ]
+}

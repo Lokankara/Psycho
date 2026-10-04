@@ -55,8 +55,8 @@ export function moveCard(board: BoardResponse, ref: CardRef, toCode: string): Bo
       if (column.code === fromCode) {
         return {
           ...column,
-          stories: column.stories.filter((item) => item.id !== ref.id),
-          tasks: column.tasks.filter((item) => item.id !== ref.id),
+          stories: ref.kind === 'story' ? column.stories.filter((item) => item.id !== ref.id) : column.stories,
+          tasks: ref.kind === 'task' ? column.tasks.filter((item) => item.id !== ref.id) : column.tasks,
         };
       }
       if (column.code === toCode) {

@@ -1,0 +1,77 @@
+{
+  "name": "User Stories for Allure Framework & Dark Factory Integration",
+  "desc": "Бэклог пользовательских историй для интеграции фреймворка Allure Report и генерации отчетов BDD",
+  "closed": false,
+  "lists": [
+    {
+      "id": "list-backlog",
+      "name": "Backlog / User Stories",
+      "closed": false,
+      "pos": 1000
+    },
+    {
+      "id": "list-in-progress",
+      "name": "In Progress",
+      "closed": false,
+      "pos": 2000
+    },
+    {
+      "id": "list-ready-bdd",
+      "name": "Ready for Dark Factory BDD",
+      "closed": false,
+      "pos": 3000
+    }
+  ],
+  "cards": [
+    {
+      "id": "US_008.001",
+      "idList": "list-backlog",
+      "name": "US_008.001 | Allure Reporting > Attach Dark Factory Execution Logs",
+      "desc": "As a QA Automation Engineer,\nI want the Dark Factory BDD runner to attach execution logs and JSON payloads to Allure reports,\nSo that I can quickly debug failed coordinate calculations and step execution errors.",
+      "closed": false,
+      "pos": 1000,
+      "labels": [
+        {
+          "id": "lbl-us",
+          "name": "User Story",
+          "color": "green"
+        }
+      ]
+    },
+    {
+      "id": "US_008.002",
+      "idList": "list-in-progress",
+      "name": "US_008.002 | Allure Reporting > Dynamic Gherkin Step Annotation",
+      "desc": "As a Test Lead,\nI want BDD scenarios generated from JSON user stories to dynamically render as Gherkin steps in Allure,\nSo that non-technical stakeholders can view readable Given-When-Then reports.",
+      "closed": false,
+      "pos": 1000,
+      "labels": [
+        {
+          "id": "lbl-us-progress",
+          "name": "User Story",
+          "color": "green"
+        },
+        {
+          "id": "lbl-high",
+          "name": "High Priority",
+          "color": "yellow"
+        }
+      ]
+    },
+    {
+      "id": "US_008.003",
+      "idList": "list-ready-bdd",
+      "name": "US_008.003 | Allure Reporting > Auto-Generate HTML Dashboard Artifacts",
+      "desc": "As a CI/CD Pipeline Engineer,\nI want an automated process to compile ./allure-results into a static HTML report under ./allure-report,\nSo that test metrics and history are visible after every test suite run.",
+      "closed": false,
+      "pos": 1000,
+      "labels": [
+        {
+          "id": "lbl-bdd-ready",
+          "name": "Dark Factory READY",
+          "color": "purple"
+        }
+      ]
+    }
+  ]
+}

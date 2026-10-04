@@ -36,7 +36,7 @@ export default function Layout({ children }: { children: ReactNode }) {
           </div>
         </nav>
       </header>
-      <main className="mx-auto max-w-5xl px-4 py-8">{children}</main>
+      <main className="mx-auto">{children}</main>
     </div>
   );
 }

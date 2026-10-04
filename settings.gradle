@@ -1,6 +1,6 @@
 rootProject.name = 'quiz'
 include 'rest'
 include 'ui'
-include 'bdd'
+include 'qa'
 include 'kanban'
 include 'agile'

@@ -1,7 +1,8 @@
 package com.unconscious.collective.quiz.domain.quiz;
 
-import com.unconscious.collective.quiz.domain.value.Pole;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.unconscious.collective.quiz.domain.value.Axis;
+import com.unconscious.collective.quiz.domain.value.Pole;
 
 /**
  * A bipolar forced-choice question: the user picks between two opposite
@@ -16,8 +17,8 @@ import com.unconscious.collective.quiz.domain.value.Axis;
 public record BipolarQuestion(
         String id,
         Axis axis,
-        String negativeStatement,
-        String positiveStatement) implements QuestionItem {
+        @JsonProperty("negative") String negativeStatement,
+        @JsonProperty("positive") String positiveStatement) implements QuestionItem {
 
     /** Returns the positive statement for POSITIVE, and the negative statement otherwise, including null. */
     public String statement(Pole pole) {

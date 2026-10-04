@@ -2,8 +2,8 @@ group = 'com.unconscious.collective'
 version = '0.0.1-SNAPSHOT'
 
 tasks.register('runAll') {
-    description = 'Starts quiz-api, quiz-ui, dashboard-ui and kanban-api'
+    description = 'Starts quiz-api, quiz-ui, dashboard-ui, kanban-api and py json store'
     group = 'application'
 
-    dependsOn ':rest:bootRun', ':agile:bootRun', ':ui:bootRun', ':kanban:bootRun'
+    dependsOn ':rest:bootRun', ':agile:bootRun', ':ui:bootRun', ':kanban:bootRun', ':py:bootRun'
 }

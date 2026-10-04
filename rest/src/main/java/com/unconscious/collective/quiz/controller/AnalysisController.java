@@ -1,11 +1,20 @@
 package com.unconscious.collective.quiz.controller;
 
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import com.unconscious.collective.quiz.dao.QuizResult;
 import com.unconscious.collective.quiz.domain.archetype.ArchetypeMatch;
-import com.unconscious.collective.quiz.domain.value.Pole;
 import com.unconscious.collective.quiz.domain.archetype.SemanticProfile;
+import com.unconscious.collective.quiz.domain.dto.AnalysisRequest;
+import com.unconscious.collective.quiz.domain.dto.AnalysisResponse;
 import com.unconscious.collective.quiz.domain.dto.AnalysisResult;
 import com.unconscious.collective.quiz.domain.dto.AssessmentPayload;
+import com.unconscious.collective.quiz.domain.quiz.QuestionResponse;
+import com.unconscious.collective.quiz.domain.quiz.QuizResultResponse;
+import com.unconscious.collective.quiz.domain.value.Pole;
 import com.unconscious.collective.quiz.service.QuizService;
 import com.unconscious.collective.quiz.service.ResultService;
 import com.unconscious.collective.quiz.service.SemanticMatchingService;
@@ -17,11 +26,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Thin REST API over the quiz/scoring/matching services.
@@ -35,7 +39,7 @@ public class AnalysisController {
     private final SemanticMatchingService matchingService;
 
     public AnalysisController(QuizService quizService, ResultService resultService,
-                              SemanticMatchingService matchingService) {
+            SemanticMatchingService matchingService) {
         this.quizService = quizService;
         this.resultService = resultService;
         this.matchingService = matchingService;
@@ -44,7 +48,7 @@ public class AnalysisController {
     /** Returns the question bank in presentation order with axis titles and both statements. */
     @GetMapping("/questions")
     public List<QuestionResponse> questions() {
-        return quizService.questions().stream()
+        return quizService.getQuestions().stream()
                 .map(QuestionResponse::from)
                 .toList();
     }
@@ -55,13 +59,13 @@ public class AnalysisController {
      */
     @PostMapping("/analyze")
     public ResponseEntity<AnalysisResult> processAssessment(@RequestBody AssessmentPayload payload) {
-        AnalysisResult result = resultService.analyze(payload, quizService.questions());
+        AnalysisResult result = resultService.analyze(payload, quizService.getQuestions());
         return ResponseEntity.ok(result);
     }
 
     @PostMapping("/results")
     public ResponseEntity<QuizResultResponse> completeQuiz(@RequestBody AssessmentPayload payload) {
-        AnalysisResult result = resultService.analyzeAndSave(payload, quizService.questions());
+        AnalysisResult result = resultService.analyzeAndSave(payload, quizService.getQuestions());
         return ResponseEntity.ok(QuizResultResponse.from(result));
     }
 

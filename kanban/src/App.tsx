@@ -1,5 +1,10 @@
+import Layout from './components/Layout';
 import BoardPage from './BoardPage';
 
 export default function App() {
-  return <BoardPage />;
+  return (
+    <Layout>
+      <BoardPage />
+    </Layout>
+  );
 }

@@ -6,7 +6,7 @@ import com.unconscious.collective.agile.model.dto.BoardResponse;
 import com.unconscious.collective.agile.model.dto.MoveRequest;
 import com.unconscious.collective.agile.model.dto.StoryCard;
 import com.unconscious.collective.agile.model.dto.TaskCard;
-import com.unconscious.collective.agile.service.AgileBoardService;
+import com.unconscious.collective.agile.service.IAgileBoardOperations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,16 +23,16 @@ import org.springframework.web.server.ResponseStatusException;
 @RequestMapping("/api/agile")
 public class AgileController {
 
-    private final AgileBoardService boardService;
+    private final IAgileBoardOperations boardService;
 
-    public AgileController(AgileBoardService board) {
+    public AgileController(IAgileBoardOperations board) {
         this.boardService = board;
     }
 
     @GetMapping("/board")
     public BoardResponse board(@RequestParam(required = false) Long programIncrementId,
-                               @RequestParam(required = false) Long sprintId) {
-        return boardService.board(programIncrementId, sprintId);
+            @RequestParam(required = false) Long sprintId) {
+        return boardService.getBoard(programIncrementId, sprintId);
     }
 
     @PatchMapping("/stories/{id}/column")

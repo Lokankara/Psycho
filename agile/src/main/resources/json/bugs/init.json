@@ -1,0 +1,157 @@
+{
+  "kanbanColumns": [
+    {
+      "code": "TO_DO",
+      "name": "To Do",
+      "position": 0
+    },
+    {
+      "code": "IN_PROGRESS",
+      "name": "In Progress",
+      "position": 1
+    },
+    {
+      "code": "CODE_REVIEW",
+      "name": "Code Review",
+      "position": 2
+    },
+    {
+      "code": "DONE",
+      "name": "Done",
+      "position": 3
+    }
+  ],
+  "programIncrements": [
+    {
+      "code": "PI-1",
+      "name": "PI-1 · Collective Unconscious Engine",
+      "goal": "Ship deterministic scoring, BDD coverage and an agile delivery board",
+      "startDate": "2026-10-01",
+      "endDate": "2027-01-31",
+      "sprints": [
+        {
+          "code": "PI1-S1",
+          "name": "PI1 Sprint 1",
+          "goal": "Deterministic scoring",
+          "startDate": "2026-10-01",
+          "endDate": "2026-10-14"
+        },
+        {
+          "code": "PI1-S2",
+          "name": "PI1 Sprint 2",
+          "goal": "BDD and execution history",
+          "startDate": "2026-10-15",
+          "endDate": "2026-10-28"
+        },
+        {
+          "code": "PI1-S3",
+          "name": "PI1 Sprint 3",
+          "goal": "Agile board delivery",
+          "startDate": "2026-10-29",
+          "endDate": "2026-11-11"
+        }
+      ],
+      "epics": [
+        {
+          "code": "EP-1",
+          "name": "Scoring determinism",
+          "description": "Coordinate calculation must be reproducible for identical payloads"
+        },
+        {
+          "code": "EP-2",
+          "name": "BDD and E2E coverage",
+          "description": "JBehave stories, page objects and execution history export"
+        },
+        {
+          "code": "EP-3",
+          "name": "Kanban delivery board",
+          "description": "Interactive Trello-like board backed by the agile domain model"
+        }
+      ]
+    }
+  ],
+  "userStories": [
+    {
+      "code": "US-1",
+      "title": "Verify coordinate determinism",
+      "storyPoints": 3,
+      "priority": "HIGH",
+      "bddStory": "verify_coordinate_calculation.story",
+      "acceptanceCriteria": "Given an identical set of quiz answers\nWhen the assessment is scored twice\nThen both runs return identical X, Y, Z coordinates and the same octant",
+      "executionStatus": "NOT_RUN",
+      "epicCode": "EP-1",
+      "sprintCode": "PI1-S1",
+      "kanbanColumnCode": "DONE"
+    },
+    {
+      "code": "US-2",
+      "title": "Export execution history as JSON",
+      "storyPoints": 5,
+      "priority": "HIGH",
+      "bddStory": null,
+      "acceptanceCriteria": "Given a completed assessment\nWhen the execution trace is recorded\nThen a result_YYYYMMDD_HHMMSS.json file exists under task/history",
+      "executionStatus": "NOT_RUN",
+      "epicCode": "EP-1",
+      "sprintCode": "PI1-S2",
+      "kanbanColumnCode": "IN_PROGRESS"
+    },
+    {
+      "code": "US-3",
+      "title": "Page objects and locator registry",
+      "storyPoints": 3,
+      "priority": "MEDIUM",
+      "bddStory": null,
+      "acceptanceCriteria": "Given a page object for each UI screen\nWhen BDD steps reference selectors\nThen no raw CSS or XPath literal appears in a step definition",
+      "executionStatus": "NOT_RUN",
+      "epicCode": "EP-2",
+      "sprintCode": "PI1-S2",
+      "kanbanColumnCode": "CODE_REVIEW"
+    },
+    {
+      "code": "US-4",
+      "title": "Interactive kanban board",
+      "storyPoints": 5,
+      "priority": "MEDIUM",
+      "bddStory": null,
+      "acceptanceCriteria": "Given a PI and sprint selector\nWhen a story is dragged between columns\nThen the new column is persisted and survives a reload",
+      "executionStatus": "NOT_RUN",
+      "epicCode": "EP-3",
+      "sprintCode": "PI1-S3",
+      "kanbanColumnCode": "TO_DO"
+    }
+  ],
+  "tasks": [
+    {
+      "code": "T-1",
+      "title": "Round coordinates to two decimals",
+      "bddStory": "verify_coordinate_calculation.story",
+      "executionStatus": "NOT_RUN",
+      "userStoryCode": "US-1",
+      "kanbanColumnCode": "DONE"
+    },
+    {
+      "code": "T-2",
+      "title": "Write HistoryResult for task/history",
+      "bddStory": null,
+      "executionStatus": "NOT_RUN",
+      "userStoryCode": "US-2",
+      "kanbanColumnCode": "IN_PROGRESS"
+    },
+    {
+      "code": "T-3",
+      "title": "Drag and drop column transitions",
+      "bddStory": null,
+      "executionStatus": "NOT_RUN",
+      "userStoryCode": "US-4",
+      "kanbanColumnCode": "CODE_REVIEW"
+    },
+    {
+      "code": "T-4",
+      "title": "Centralise selectors in Locators",
+      "bddStory": null,
+      "executionStatus": "NOT_RUN",
+      "userStoryCode": "US-3",
+      "kanbanColumnCode": "TO_DO"
+    }
+  ]
+}

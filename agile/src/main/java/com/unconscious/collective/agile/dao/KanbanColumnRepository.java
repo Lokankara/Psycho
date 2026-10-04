@@ -12,4 +12,17 @@ public interface KanbanColumnRepository extends JpaRepository<@NonNull KanbanCol
     List<KanbanColumn> findAllByOrderByPositionAsc();
 
     Optional<KanbanColumn> findByCode(String code);
+
+    default List<KanbanColumn> findAllByOrderByPositionAscOrDefault() {
+        List<KanbanColumn> columns = findAllByOrderByPositionAsc();
+        if (columns.isEmpty()) {
+            return List.of(
+                    new KanbanColumn("TO_DO", "To Do", 0),
+                    new KanbanColumn("IN_PROGRESS", "In Progress", 1),
+                    new KanbanColumn("CODE_REVIEW", "Code Review", 2),
+                    new KanbanColumn("DONE", "Done", 3)
+            );
+        }
+        return columns;
+    }
 }

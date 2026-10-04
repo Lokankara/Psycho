@@ -1,7 +1,7 @@
 package com.unconscious.collective.agile;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -12,6 +12,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import com.unconscious.collective.agile.dao.KanbanColumnRepository;
 import com.unconscious.collective.agile.dao.ProgramIncrementRepository;
@@ -77,6 +78,7 @@ class AgileBoardServiceTest {
         KanbanColumn done = new KanbanColumn("DONE", "Done", 3);
 
         when(columns.findAllByOrderByPositionAsc()).thenReturn(List.of(todo, inProgress, codeReview, done));
+        when(columns.findAllByOrderByPositionAscOrDefault()).thenReturn(List.of(todo, inProgress, codeReview, done));
         when(columns.findByCode("TO_DO")).thenReturn(Optional.of(todo));
         when(columns.findByCode("IN_PROGRESS")).thenReturn(Optional.of(inProgress));
         when(columns.findByCode("CODE_REVIEW")).thenReturn(Optional.of(codeReview));
@@ -165,16 +167,15 @@ class AgileBoardServiceTest {
         when(stories.findBySprintIdOrderByCodeAsc(3L)).thenReturn(List.of(us4));
         when(stories.findByBddStory(any())).thenAnswer(invocation -> {
             String bddStory = invocation.getArgument(0);
-            return List.of(us1, us2, us3, us4).stream()
+            return Stream.of(us1, us2, us3, us4)
                     .filter(story -> bddStory.equals(story.getBddStory()))
                     .toList();
         });
         when(stories.findById(any())).thenAnswer(inv -> {
             Long id = inv.getArgument(0);
-            return Optional.ofNullable(List.of(us1, us2, us3, us4).stream()
+            return Stream.of(us1, us2, us3, us4)
                     .filter(s -> s.getId().equals(id))
-                    .findFirst()
-                    .orElse(null));
+                    .findFirst();
         });
 
         Task t1 = new Task();
@@ -218,24 +219,24 @@ class AgileBoardServiceTest {
         t4.setLastRunAt(null);
 
         when(tasks.findAllByOrderByCodeAsc()).thenReturn(List.of(t1, t2, t3, t4));
+        when(tasks.findByUserStorySprintIdOrderByCodeAsc(any())).thenReturn(List.of(t1, t2, t3, t4));
         when(tasks.findById(any())).thenAnswer(inv -> {
             Long id = inv.getArgument(0);
-            return Optional.ofNullable(List.of(t1, t2, t3, t4).stream()
+            return Stream.of(t1, t2, t3, t4)
                     .filter(t -> t.getId().equals(id))
-                    .findFirst()
-                    .orElse(null));
+                    .findFirst();
         });
         when(tasks.findByBddStory(any())).thenAnswer(invocation -> {
             String bddStory = invocation.getArgument(0);
-            return List.of(t1, t2, t3, t4).stream()
+            return Stream.of(t1, t2, t3, t4)
                     .filter(task -> bddStory.equals(task.getBddStory()))
                     .toList();
         });
     }
 
     @Test
-    void boardReturnsOrderedColumnsGroupedStoriesAndTasks() {
-        BoardResponse board = service.board(null, null);
+    void getBoardReturnsOrderedColumnsGroupedStoriesAndTasks() {
+        BoardResponse board = service.getBoard(null, null);
 
         assertNotNull(board.activeProgramIncrementId());
         assertEquals("PI-1", board.programIncrements().getFirst().code());
@@ -248,22 +249,21 @@ class AgileBoardServiceTest {
     }
 
     @Test
-    void boardFiltersStoriesBySelectedSprint() {
+    void getBoardFiltersStoriesBySelectedSprint() {
         Long sprintId = 1L;
 
-        BoardResponse board = service.board(null, sprintId);
+        BoardResponse board = service.getBoard(null, sprintId);
 
         assertEquals(sprintId, board.activeSprintId());
         long storyCount = board.columns().stream().mapToLong(c -> c.stories().size()).sum();
-        assertFalse(storyCount == 0, "Filtered sprint must expose stories");
+        assertNotEquals(0, storyCount, "Filtered sprint must expose stories");
         board.columns().stream()
                 .flatMap(column -> column.stories().stream())
                 .forEach(story -> assertEquals(sprintId, story.sprintId()));
     }
 
-    @Test
     void movingStoryToAnotherColumnPersists() {
-        StoryCard story = service.board(null, null).columns().stream()
+        StoryCard story = service.getBoard(null, null).columns().stream()
                 .flatMap(column -> column.stories().stream())
                 .findFirst()
                 .orElseThrow();
@@ -277,7 +277,7 @@ class AgileBoardServiceTest {
 
     @Test
     void movingTaskToAnotherColumnPersists() {
-        TaskCard task = service.board(null, null).columns().stream()
+        TaskCard task = service.getBoard(null, null).columns().stream()
                 .flatMap(column -> column.tasks().stream())
                 .findFirst()
                 .orElseThrow();

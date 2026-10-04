@@ -5,7 +5,7 @@ import { kanbanApi } from './api';
 import BoardColumn from './BoardColumn';
 import DetailDrawer from './DetailDrawer';
 import KanbanCard from './KanbanCard';
-import { columnIndex, moveCard, parseDragId } from './relocate';
+import { columnIndex, locate, moveCard, parseDragId } from './relocate';
 import type { BoardResponse, BddStatus, CardKind, StoryCard, TaskCard } from './types';
 
 interface Selected {
@@ -88,6 +88,7 @@ export default function BoardPage() {
 
   const reload = useCallback(() => {
     setLoading(true);
+    setError(null);
     kanbanApi
       .board(programIncrementId, sprintId)
       .then(setBoard)
@@ -101,10 +102,12 @@ export default function BoardPage() {
       setSelected((current) =>
         current && current.kind === kind && current.id === id ? { ...current, columnCode: toCode } : current,
       );
-      kanbanApi.move(kind, id, toCode).catch((cause: Error) => {
-        setError(cause.message);
-        reload();
-      });
+      kanbanApi.move(kind, id, toCode)
+        .then(() => setError(null))
+        .catch((cause: Error) => {
+          setError(cause.message);
+          reload();
+        });
     },
     [reload],
   );
@@ -115,8 +118,10 @@ export default function BoardPage() {
       const { active, over } = event;
       if (!over) return;
       const reference = parseDragId(String(active.id));
-      const toCode = String(over.id);
-      if (!reference || !board.columns.some((column) => column.code === toCode)) return;
+      const overId = String(over.id);
+      const overRef = parseDragId(overId);
+      const toCode = overRef ? locate(board, overRef) : overId;
+      if (!reference || !toCode || !board.columns.some((column) => column.code === toCode)) return;
       applyMove(reference.kind, reference.id, toCode);
     },
     [applyMove, board],
