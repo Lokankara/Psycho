@@ -30,10 +30,8 @@ import com.unconscious.collective.agile.model.entity.Task;
 import com.unconscious.collective.agile.model.entity.UserStory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service
 public class AgileBoardService implements IAgileBoardOperations {
 
     private static final Logger LOG = LoggerFactory.getLogger(AgileBoardService.class);

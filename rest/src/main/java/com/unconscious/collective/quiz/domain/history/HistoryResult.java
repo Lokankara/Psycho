@@ -1,17 +1,17 @@
 package com.unconscious.collective.quiz.domain.history;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-import tools.jackson.databind.ObjectMapper;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class HistoryResult {
@@ -24,7 +24,7 @@ public class HistoryResult {
     private final ObjectMapper mapper;
 
     public HistoryResult(@Value("${app.history.dir:../result/history}") String configuredDirectory,
-                         ObjectMapper objectMapper) {
+            ObjectMapper objectMapper) {
         this.directory = Path.of(configuredDirectory);
         this.mapper = objectMapper;
     }

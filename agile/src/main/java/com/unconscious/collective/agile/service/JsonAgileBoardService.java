@@ -5,14 +5,22 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.unconscious.collective.agile.model.dto.BddExecutionResponse;
 import com.unconscious.collective.agile.model.dto.BoardResponse;
@@ -35,15 +43,21 @@ import com.unconscious.collective.agile.model.json.JsonKanbanColumn;
 import com.unconscious.collective.agile.model.json.JsonProgramIncrement;
 import com.unconscious.collective.agile.model.json.JsonSprint;
 import com.unconscious.collective.agile.model.json.JsonTask;
+import com.unconscious.collective.agile.model.json.JsonTrelloBoard;
+import com.unconscious.collective.agile.model.json.JsonTrelloCard;
+import com.unconscious.collective.agile.model.json.JsonTrelloLabel;
+import com.unconscious.collective.agile.model.json.JsonTrelloList;
 import com.unconscious.collective.agile.model.json.JsonUserStory;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
 
-@Service
 public class JsonAgileBoardService implements IAgileBoardOperations {
 
     private static final DateTimeFormatter ISO = DateTimeFormatter.ISO_INSTANT;
+    private static final Pattern TIMESTAMP =
+            Pattern.compile("(\\d{2}\\.\\d{2}\\.\\d{4},\\s*\\d{2}:\\d{2}:\\d{2})");
+    private static final DateTimeFormatter TIMESTAMP_FORMAT =
+            DateTimeFormatter.ofPattern("dd.MM.yyyy, HH:mm:ss");
     private final List<KanbanColumn> columns = new ArrayList<>();
     private final List<ProgramIncrement> programIncrements = new ArrayList<>();
     private final List<Sprint> sprints = new ArrayList<>();
@@ -56,18 +70,118 @@ public class JsonAgileBoardService implements IAgileBoardOperations {
     }
 
     private void loadData(ResourceLoader resourceLoader) {
-        try (InputStream in = resourceLoader.getResource("classpath:bugs/init.json").getInputStream()) {
+        ObjectMapper mapper = new ObjectMapper();
+        try (InputStream in = resourceLoader.getResource("classpath:json/bugs/init.json").getInputStream()) {
             byte[] bytes = in.readAllBytes();
             String json = new String(bytes, StandardCharsets.UTF_8);
-            JsonInitData data = new ObjectMapper().readValue(json, JsonInitData.class);
+            JsonInitData data = mapper.readValue(json, JsonInitData.class);
             loadColumns(data.kanbanColumns());
             loadProgramIncrements(data.programIncrements());
             loadEpics(data.programIncrements());
             loadUserStories(data.userStories());
             loadTasks(data.tasks());
         } catch (IOException e) {
-            throw new IllegalStateException("Failed to load bugs/init.json", e);
+            throw new IllegalStateException("Failed to load json/bugs/init.json", e);
         }
+        loadTrelloBoard(resourceLoader, mapper, "classpath:json/story/allure.json", true);
+        loadTrelloBoard(resourceLoader, mapper, "classpath:json/task/allure.json", false);
+        loadTrelloBoard(resourceLoader, mapper, "classpath:json/bugs/coordinates.json", false);
+    }
+
+    private void loadTrelloBoard(ResourceLoader resourceLoader, ObjectMapper mapper, String location,
+            boolean asStory) {
+        try (InputStream in = resourceLoader.getResource(location).getInputStream()) {
+            byte[] bytes = in.readAllBytes();
+            String json = new String(bytes, StandardCharsets.UTF_8);
+            JsonTrelloBoard board = mapper.readValue(json, JsonTrelloBoard.class);
+            importTrelloBoard(board, location, asStory);
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to load " + location, e);
+        }
+    }
+
+    private void importTrelloBoard(JsonTrelloBoard board, String source, boolean asStory) {
+        if (board == null || board.cards() == null || board.cards().isEmpty()) {
+            return;
+        }
+        Sprint defaultSprint = sprints.isEmpty() ? null : sprints.getFirst();
+        Epic defaultEpic = epics.isEmpty() ? null : epics.getFirst();
+        Map<String, String> listToColumn = new LinkedHashMap<>();
+        if (board.lists() != null) {
+            for (JsonTrelloList list : board.lists()) {
+                if (list == null || list.id() == null) {
+                    continue;
+                }
+                listToColumn.put(list.id(), mapListNameToColumnCode(list.name()));
+            }
+        }
+        for (JsonTrelloCard card : board.cards()) {
+            if (card == null || Boolean.TRUE.equals(card.closed())) {
+                continue;
+            }
+            KanbanColumn column = columnByCode(listToColumn.getOrDefault(card.idList(), "TO_DO"));
+            if (column == null) {
+                continue;
+            }
+            if (asStory && !isRunCard(card)) {
+                importTrelloCardAsStory(board, card, source, column, defaultSprint, defaultEpic);
+            } else {
+                importTrelloCardAsTask(board, card, source, column);
+            }
+        }
+    }
+
+    private static boolean isRunCard(JsonTrelloCard card) {
+        String id = card.id() == null ? "" : card.id().toLowerCase(Locale.ROOT);
+        String name = card.name() == null ? "" : card.name().toLowerCase(Locale.ROOT);
+        return id.startsWith("run-") || name.startsWith("run #");
+    }
+
+    private static String mapListNameToColumnCode(String listName) {
+        String name = listName == null ? "" : listName.toLowerCase(Locale.ROOT);
+        if (name.contains("done") || name.contains("artifact") || name.contains("report")) {
+            return "DONE";
+        }
+        if (name.contains("review") || name.contains("ready")) {
+            return "CODE_REVIEW";
+        }
+        if (name.contains("progress") || name.contains("run") || name.contains("drift")
+                || name.contains("investigation")) {
+            return "IN_PROGRESS";
+        }
+        return "TO_DO";
+    }
+
+    private void importTrelloCardAsStory(JsonTrelloBoard board, JsonTrelloCard card, String source,
+            KanbanColumn column, Sprint defaultSprint, Epic defaultEpic) {
+        UserStory story = new UserStory();
+        story.setId(nextStoryId());
+        story.setCode(storyCode(card));
+        story.setTitle(card.name() == null ? card.id() : card.name());
+        story.setDescription(trelloDescription(board, card, source));
+        story.setAcceptanceCriteria(card.desc());
+        story.setStoryPoints(null);
+        story.setPriority(trelloPriority(card));
+        story.setExecutionStatus(trelloStatus(card));
+        story.setLastRunAt(trelloRunAt(card));
+        story.setEpic(defaultEpic);
+        story.setSprint(defaultSprint);
+        story.setKanbanColumn(column);
+        userStories.add(story);
+    }
+
+    private void importTrelloCardAsTask(JsonTrelloBoard board, JsonTrelloCard card, String source,
+            KanbanColumn column) {
+        Task task = new Task();
+        task.setId(nextTaskId());
+        task.setCode(storyCode(card));
+        task.setTitle(card.name() == null ? card.id() : card.name());
+        task.setDescription(trelloDescription(board, card, source));
+        task.setExecutionStatus(trelloStatus(card));
+        task.setLastRunAt(trelloRunAt(card));
+        task.setUserStory(null);
+        task.setKanbanColumn(column);
+        tasks.add(task);
     }
 
     private void loadColumns(List<JsonKanbanColumn> jsonColumns) {
@@ -321,6 +435,205 @@ public class JsonAgileBoardService implements IAgileBoardOperations {
             }
         }
         return grouped;
+    }
+
+    private static String uniqueCode(String prefix, String raw, Set<String> reserved) {
+        String base = prefix + sanitizeCode(raw);
+        if (!reserved.contains(base) && base.length() <= 32) {
+            return base;
+        }
+        for (int i = 1; i < 1000; i++) {
+            String candidate = base + "-" + i;
+            if (candidate.length() > 32) {
+                candidate = base.substring(0, 32 - ("-" + i).length()) + "-" + i;
+            }
+            if (!reserved.contains(candidate)) {
+                return candidate;
+            }
+        }
+        return base.substring(0, Math.min(base.length(), 32));
+    }
+
+    private static String sanitizeCode(String raw) {
+        String clean = raw == null ? "CARD" : raw.toUpperCase(Locale.ROOT).replaceAll("[^A-Z0-9]+", "-");
+        clean = clean.replaceAll("^-+|-+$", "");
+        if (clean.isEmpty()) {
+            clean = "CARD";
+        }
+        return clean.length() > 28 ? clean.substring(0, 28) : clean;
+    }
+
+    private static String trelloPriority(JsonTrelloCard card) {
+        if (card.labels() != null) {
+            for (JsonTrelloLabel label : card.labels()) {
+                String name = label.name() == null ? "" : label.name().toLowerCase(Locale.ROOT);
+                String color = label.color() == null ? "" : label.color().toLowerCase(Locale.ROOT);
+                if (name.contains("high") || color.equals("red")) {
+                    return "HIGH";
+                }
+            }
+            for (JsonTrelloLabel label : card.labels()) {
+                String name = label.name() == null ? "" : label.name().toLowerCase(Locale.ROOT);
+                String color = label.color() == null ? "" : label.color().toLowerCase(Locale.ROOT);
+                if (name.contains("medium") || name.contains("ready") || color.equals("yellow")
+                        || color.equals("purple")) {
+                    return "MEDIUM";
+                }
+            }
+        }
+        return "MEDIUM";
+    }
+
+    private static BddStatus trelloStatus(JsonTrelloCard card) {
+        String haystack = ((card.desc() == null ? "" : card.desc()) + " "
+                + labelText(card)).toLowerCase(Locale.ROOT);
+        if (haystack.contains("failed") || haystack.contains("failure")) {
+            return BddStatus.FAILED;
+        }
+        if (haystack.contains("passed") || haystack.contains("pass")) {
+            return BddStatus.PASSED;
+        }
+        return BddStatus.NOT_RUN;
+    }
+
+    private static String labelText(JsonTrelloCard card) {
+        if (card.labels() == null) {
+            return "";
+        }
+        StringBuilder names = new StringBuilder();
+        for (JsonTrelloLabel label : card.labels()) {
+            if (label.name() != null) {
+                names.append(label.name()).append(' ');
+            }
+        }
+        return names.toString();
+    }
+
+    private static Instant trelloRunAt(JsonTrelloCard card) {
+        if (card.desc() == null) {
+            return null;
+        }
+        Matcher matcher = TIMESTAMP.matcher(card.desc());
+        if (!matcher.find()) {
+            return null;
+        }
+        return parseDateTime(matcher.group(1));
+    }
+
+    private static Instant parseDateTime(String text) {
+        try {
+            LocalDateTime local = LocalDateTime.parse(text.trim(), TIMESTAMP_FORMAT);
+            return local.atZone(ZoneId.systemDefault()).toInstant();
+        } catch (DateTimeParseException e) {
+            return null;
+        }
+    }
+
+    private KanbanColumn columnByCode(String code) {
+        if (code == null) {
+            return null;
+        }
+        return columns.stream()
+                .filter(column -> code.equals(column.getCode()))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private KanbanColumn columnFor(String code) {
+        if (code == null) {
+            return columns.getFirst();
+        }
+        return columns.stream()
+                .filter(column -> code.equals(column.getCode()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unknown column: " + code));
+    }
+
+    private static String storyCodeFromTrelloId(String trelloId) {
+        return "US-" + sanitizeTrelloId(trelloId);
+    }
+
+    private static String taskCodeFromTrelloId(String trelloId) {
+        return "T-" + sanitizeTrelloId(trelloId);
+    }
+
+    private static String sanitizeTrelloId(String trelloId) {
+        if (trelloId == null || trelloId.isBlank()) {
+            return "UNKNOWN";
+        }
+        String sanitized = trelloId.trim().toUpperCase(Locale.ROOT).replaceAll("[^A-Z0-9]+", "-")
+                .replaceAll("^-+|-+$", "");
+        if (sanitized.isEmpty()) {
+            return "UNKNOWN";
+        }
+        return sanitized.length() > 28 ? sanitized.substring(0, 28).replaceAll("-+$", "") : sanitized;
+    }
+
+    private static String storyCode(JsonTrelloCard card) {
+        return storyCodeFromTrelloId(card.id());
+    }
+
+    private static String trelloDescription(JsonTrelloBoard board, JsonTrelloCard card, String source) {
+        String boardName = board == null || board.name() == null ? "" : board.name().trim();
+        String desc = card.desc() == null ? "" : card.desc().trim();
+        String prefix = source == null ? "" : source.trim();
+        StringBuilder result = new StringBuilder();
+        if (!prefix.isEmpty()) {
+            result.append('[').append(prefix).append(']');
+        }
+        if (!boardName.isEmpty()) {
+            if (!result.isEmpty()) {
+                result.append(' ');
+            }
+            result.append(boardName);
+        }
+        if (!desc.isEmpty()) {
+            if (!result.isEmpty()) {
+                result.append('\n');
+            }
+            result.append(desc);
+        }
+        return result.toString();
+    }
+
+    private KanbanColumn trelloColumn(String listName) {
+        String name = listName == null ? "" : listName.toLowerCase(Locale.ROOT);
+        if (name.contains("progress")) {
+            return columnFor("IN_PROGRESS");
+        }
+        if (name.contains("review") || name.contains("ready")) {
+            return columnFor("CODE_REVIEW");
+        }
+        if (name.contains("done")) {
+            return columnFor("DONE");
+        }
+        return columnFor(null);
+    }
+
+    private Sprint defaultSprint() {
+        return sprints.isEmpty() ? null : sprints.getFirst();
+    }
+
+    private Epic defaultEpic() {
+        return epics.isEmpty() ? null : epics.getFirst();
+    }
+
+    private Long nextStoryId() {
+        return userStories.stream()
+                .map(UserStory::getId)
+                .filter(Objects::nonNull)
+                .max(Long::compareTo)
+                .map(max -> max + 1)
+                .orElse((long) userStories.size() + 1);
+    }
+
+    private Long nextTaskId() {
+        return tasks.stream()
+                .map(Task::getId)
+                .filter(Objects::nonNull)
+                .max(Long::compareTo)
+                .map(max -> max + 1)
+                .orElse((long) tasks.size() + 1);
     }
 
     private ProgramIncrementOption piOption(ProgramIncrement pi) {

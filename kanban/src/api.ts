@@ -57,4 +57,12 @@ export const kanbanApi = {
   move(kind: CardKind, id: number, columnCode: string): Promise<unknown> {
     return kind === 'story' ? kanbanApi.moveStory(id, columnCode) : kanbanApi.moveTask(id, columnCode);
   },
+
+  runBddExecution(bddStory: string, status: string): Promise<{ storiesUpdated: number; tasksUpdated: number }> {
+    return fetch('/api/agile/bdd-execution', {
+      method: 'POST',
+      headers: jsonHeaders,
+      body: JSON.stringify({ bddStory, status }),
+    }).then(parse<{ storiesUpdated: number; tasksUpdated: number }>);
+  },
 };

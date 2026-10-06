@@ -14,7 +14,7 @@ ui/node_modules/
 data/
 logs/
 kanban/dist/
-result/
+rest/src/main/resources/history
 
 ### Build output ###
 target/

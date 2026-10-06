@@ -15,37 +15,37 @@ export interface KanbanCardProps {
   onMove: (delta: -1 | 1) => void;
 }
 
+function labelClass(status: BddStatus): string {
+  if (status === 'FAILED') return 'label-red';
+  if (status === 'PASSED') return 'label-green';
+  return 'label-yellow';
+}
+
 export default function KanbanCard(props: KanbanCardProps) {
   const { kind, id, code, title, points, executionStatus } = props;
   const draggableId = `${kind}:${id}`;
   const { setNodeRef, listeners, attributes, isDragging } = useDraggable({ id: draggableId });
 
   return (
-    <article
+    <div
       ref={setNodeRef}
       {...listeners}
       {...attributes}
       role="group"
       aria-label={`Drag ${code} ${title}`}
-      className={`cursor-grab touch-none select-none rounded-lg border border-slate-800 bg-slate-950 p-3 transition active:cursor-grabbing ${
-        isDragging ? 'opacity-40' : 'hover:border-slate-700'
-      }`}
+      className={`kanban-card ${isDragging ? 'dragging' : ''}`}
       data-testid={`kanban-card-${draggableId}`}
+      draggable="true"
+      data-id={draggableId}
     >
-      <div className="flex items-start gap-2">
-        <span aria-hidden="true" className="pt-1 text-slate-500">
-          ⠿
+      <div className={`card-label ${labelClass(executionStatus)}`} />
+      <div className="card-id-title">{title}</div>
+      <footer className="card-footer">
+        <span>{code}</span>
+        <span>
+          Dark Factory <BddStatusBadge status={executionStatus} />
         </span>
-        <button type="button" onClick={props.onSelect} className="min-w-0 flex-1 text-left">
-          <span className="block text-[0.7rem] font-medium uppercase tracking-wide text-slate-500">{code}</span>
-          <span className="block text-sm font-medium text-slate-100">{title}</span>
-        </button>
-        <BddStatusBadge status={executionStatus} />
-      </div>
-
-      <div className="mt-3 flex items-center justify-between">
-        <span className="text-xs text-slate-500">{points != null ? `${points} pt` : kind === 'task' ? 'task' : ''}</span>
-      </div>
-    </article>
+      </footer>
+    </div>
   );
 }
