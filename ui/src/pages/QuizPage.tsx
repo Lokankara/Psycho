@@ -61,9 +61,6 @@ export default function QuizPage() {
         <span>
           Вопрос {index + 1} из {total}
         </span>
-        <span>
-          Ось {question.axis} · {question.title}
-        </span>
       </div>
 
       <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800">
@@ -104,18 +101,6 @@ export default function QuizPage() {
 
       {error && <p className="text-red-400">Ошибка: {error}</p>}
       {submitting && <p className="text-slate-400">Расчёт результата…</p>}
-
-      <div className="flex justify-between">
-        <button
-          type="button"
-          data-testid="quiz-next"
-          onClick={() => setIndex((current) => Math.max(0, current - 1))}
-          disabled={index === 0 || submitting}
-          className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-200 disabled:opacity-40"
-        >
-          Назад
-        </button>
-      </div>
     </section>
   );
 }

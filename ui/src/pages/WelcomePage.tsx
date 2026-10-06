@@ -42,15 +42,6 @@ export default function WelcomePage() {
           </div>
         ))}
       </div>
-
-      <div className="flex flex-wrap justify-center gap-3">
-        <Link to="/quiz" className="rounded-lg bg-indigo-600 px-6 py-3 font-medium text-white transition hover:bg-indigo-500">
-          Начать тест
-        </Link>
-        <Link to="/history" className="rounded-lg border border-slate-700 px-6 py-3 font-medium text-slate-200 transition hover:border-slate-500">
-          История результатов
-        </Link>
-      </div>
     </section>
   );
 }

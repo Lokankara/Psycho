@@ -9,6 +9,22 @@ async function parse<T>(response: Response): Promise<T> {
   return (await response.json()) as T;
 }
 
+const inflight = new Map<string, Promise<unknown>>();
+
+function get<T>(url: string): Promise<T> {
+  const pending = inflight.get(url);
+  if (pending) {
+    return pending as Promise<T>;
+  }
+  const request = fetch(url)
+    .then(parse<T>)
+    .finally(() => {
+      inflight.delete(url);
+    });
+  inflight.set(url, request);
+  return request;
+}
+
 function boardUrl(programIncrementId?: number, sprintId?: number): string {
   const params = new URLSearchParams();
   if (programIncrementId) params.set('programIncrementId', String(programIncrementId));
@@ -19,7 +35,7 @@ function boardUrl(programIncrementId?: number, sprintId?: number): string {
 
 export const kanbanApi = {
   board(programIncrementId?: number, sprintId?: number): Promise<BoardResponse> {
-    return fetch(boardUrl(programIncrementId, sprintId)).then(parse<BoardResponse>);
+    return get<BoardResponse>(boardUrl(programIncrementId, sprintId));
   },
 
   moveStory(id: number, columnCode: string): Promise<StoryCard> {
@@ -40,5 +56,13 @@ export const kanbanApi = {
 
   move(kind: CardKind, id: number, columnCode: string): Promise<unknown> {
     return kind === 'story' ? kanbanApi.moveStory(id, columnCode) : kanbanApi.moveTask(id, columnCode);
+  },
+
+  runBddExecution(bddStory: string, status: string): Promise<{ storiesUpdated: number; tasksUpdated: number }> {
+    return fetch('/api/agile/bdd-execution', {
+      method: 'POST',
+      headers: jsonHeaders,
+      body: JSON.stringify({ bddStory, status }),
+    }).then(parse<{ storiesUpdated: number; tasksUpdated: number }>);
   },
 };

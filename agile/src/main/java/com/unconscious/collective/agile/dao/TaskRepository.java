@@ -11,4 +11,6 @@ public interface TaskRepository extends JpaRepository<@NonNull Task, @NonNull Lo
     List<Task> findAllByOrderByCodeAsc();
 
     List<Task> findByBddStory(String bddStory);
+
+    List<Task> findByUserStorySprintIdOrderByCodeAsc(Long sprintId);
 }

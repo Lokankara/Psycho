@@ -5,8 +5,8 @@ import { kanbanApi } from './api';
 import BoardColumn from './BoardColumn';
 import DetailDrawer from './DetailDrawer';
 import KanbanCard from './KanbanCard';
-import { columnIndex, moveCard, parseDragId } from './relocate';
 import type { BoardResponse, BddStatus, CardKind, StoryCard, TaskCard } from './types';
+import { moveCard, parseDragId, locate, columnIndex } from './relocate';
 
 interface Selected {
   kind: CardKind;
@@ -88,6 +88,7 @@ export default function BoardPage() {
 
   const reload = useCallback(() => {
     setLoading(true);
+    setError(null);
     kanbanApi
       .board(programIncrementId, sprintId)
       .then(setBoard)
@@ -101,10 +102,12 @@ export default function BoardPage() {
       setSelected((current) =>
         current && current.kind === kind && current.id === id ? { ...current, columnCode: toCode } : current,
       );
-      kanbanApi.move(kind, id, toCode).catch((cause: Error) => {
-        setError(cause.message);
-        reload();
-      });
+      kanbanApi.move(kind, id, toCode)
+        .then(() => setError(null))
+        .catch((cause: Error) => {
+          setError(cause.message);
+          reload();
+        });
     },
     [reload],
   );
@@ -115,8 +118,10 @@ export default function BoardPage() {
       const { active, over } = event;
       if (!over) return;
       const reference = parseDragId(String(active.id));
-      const toCode = String(over.id);
-      if (!reference || !board.columns.some((column) => column.code === toCode)) return;
+      const overId = String(over.id);
+      const overRef = parseDragId(overId);
+      const toCode = overRef ? locate(board, overRef) : overId;
+      if (!reference || !toCode || !board.columns.some((column) => column.code === toCode)) return;
       applyMove(reference.kind, reference.id, toCode);
     },
     [applyMove, board],
@@ -133,59 +138,21 @@ export default function BoardPage() {
   if (!board) return <p className="text-slate-400">Данные доски недоступны.</p>;
 
   return (
-    <section className="flex flex-col gap-5" data-testid="kanban-board">
-      <header className="flex flex-wrap items-end gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Kanban</h1>
-          <p className="text-sm text-slate-400">Перетаскивайте карточки между колонками</p>
+    <>
+      <header>
+        <h1>Agile Board & Dark Factory BDD Runner</h1>
+        <div className="header-actions">
+          <button id="load-stories-btn" onClick={reload}>
+            Fetch /api/user-story/
+          </button>
+          <button id="run-bdd-btn" onClick={() => alert('Triggering Dark Factory BDD execution via /api/bdd/run...')}>
+            Execute Dark Factory BDD Runner
+          </button>
         </div>
-
-        <label className="ml-auto flex items-center gap-2 text-sm text-slate-400">
-          PI
-          <select
-            value={programIncrementId ?? board.activeProgramIncrementId ?? ''}
-            onChange={(event) => {
-              setProgramIncrementId(event.target.value ? Number(event.target.value) : undefined);
-              setSprintId(undefined);
-            }}
-            data-testid="pi-selector"
-            className="rounded-lg border border-slate-800 bg-slate-900 px-3 py-1.5 text-slate-100"
-          >
-            {board.programIncrements.map((pi) => (
-              <option key={pi.id} value={pi.id}>
-                {pi.code}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="flex items-center gap-2 text-sm text-slate-400">
-          Sprint
-          <select
-            value={sprintId ?? board.activeSprintId ?? ''}
-            onChange={(event) => setSprintId(event.target.value ? Number(event.target.value) : undefined)}
-            data-testid="sprint-selector"
-            className="rounded-lg border border-slate-800 bg-slate-900 px-3 py-1.5 text-slate-100"
-          >
-            {board.sprints.map((sprint) => (
-              <option key={sprint.id} value={sprint.id}>
-                {sprint.name}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <button
-          type="button"
-          onClick={reload}
-          className="rounded-lg border border-slate-700 px-3 py-1.5 text-sm text-slate-200 hover:border-slate-500"
-        >
-          Обновить
-        </button>
       </header>
 
-      <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
-        <div className="flex gap-4 overflow-x-auto pb-4">
+      <main className="kanban-board" data-testid="kanban-board">
+        <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
           {board.columns.map((column) => {
             const position = columnIndex(board, column.code);
             return (
@@ -223,8 +190,8 @@ export default function BoardPage() {
               </BoardColumn>
             );
           })}
-        </div>
-      </DndContext>
+        </DndContext>
+      </main>
 
       {selected && board && (
         <DetailDrawer
@@ -240,6 +207,6 @@ export default function BoardPage() {
           onClose={() => setSelected(null)}
         />
       )}
-    </section>
+    </>
   );
 }

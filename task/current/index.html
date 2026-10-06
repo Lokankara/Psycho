@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agile Kanban Board & Dark Factory BDD Runner</title>
+    <style>
+        :root {
+            --bg-primary: #121214;
+            --bg-secondary: #1a1a1e;
+            --bg-card: #242429;
+            --border-color: #33333b;
+            --text-primary: #e1e1e6;
+            --text-secondary: #a8a8b3;
+            --accent-green: #04d361;
+            --accent-blue: #8257e5;
+            --accent-purple: #996dff;
+            --accent-yellow: #fba94c;
+            --accent-red: #f75a68;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            min-height: 100vh;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 16px;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        button {
+            background-color: var(--accent-blue);
+            color: #ffffff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: var(--accent-purple);
+        }
+
+        .kanban-board {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+            align-items: start;
+        }
+
+        .kanban-column {
+            background-color: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 16px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-height: 500px;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+
+        .kanban-column.drag-over {
+            background-color: #22222a;
+            border-color: var(--accent-purple);
+        }
+
+        .column-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .column-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .cards-count {
+            background-color: var(--border-color);
+            color: var(--text-secondary);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+
+        .card-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-height: 450px;
+        }
+
+        .kanban-card {
+            background-color: var(--bg-card);
+            border-radius: 6px;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            cursor: grab;
+            transition: border-color 0.2s, opacity 0.2s;
+        }
+
+        .kanban-card:active {
+            cursor: grabbing;
+        }
+
+        .kanban-card.dragging {
+            opacity: 0.4;
+            border-color: var(--accent-blue);
+        }
+
+        .kanban-card:hover {
+            border-color: var(--accent-purple);
+        }
+
+        .card-label {
+            height: 4px;
+            width: 32px;
+            border-radius: 2px;
+        }
+
+        .label-green { background-color: var(--accent-green); }
+        .label-purple { background-color: var(--accent-purple); }
+        .label-yellow { background-color: var(--accent-yellow); }
+        .label-red { background-color: var(--accent-red); }
+
+        .card-id-title {
+            font-size: 0.85rem;
+            line-height: 1.3;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .drawer {
+            position: fixed;
+            top: 0;
+            right: -450px;
+            width: 450px;
+            height: 100vh;
+            background-color: var(--bg-secondary);
+            border-left: 1px solid var(--border-color);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            transition: right 0.3s ease;
+            box-shadow: -4px 0 16px rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .drawer.open {
+            right: 0;
+        }
+
+        .drawer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        .json-viewer {
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 12px;
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: var(--accent-green);
+            overflow-x: auto;
+            flex-grow: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Agile Board & Dark Factory BDD Runner</h1>
+        <div class="header-actions">
+            <button id="load-stories-btn">Fetch /api/user-story/</button>
+            <button id="run-bdd-btn">Execute Dark Factory</button>
+        </div>
+    </header>
+
+    <main class="kanban-board">
+        <div class="kanban-column" id="col_todo" data-status="Todo">
+            <div class="column-header">
+                <span class="column-title">Todo</span>
+                <span class="cards-count">0</span>
+            </div>
+            <div class="card-list"></div>
+        </div>
+
+        <div class="kanban-column" id="col_user_story" data-status="User Story">
+            <div class="column-header">
+                <span class="column-title">User Story</span>
+                <span class="cards-count">0</span>
+            </div>
+            <div class="card-list"></div>
+        </div>
+
+        <div class="kanban-column" id="col_review" data-status="Review">
+            <div class="column-header">
+                <span class="column-title">Review</span>
+                <span class="cards-count">0</span>
+            </div>
+            <div class="card-list"></div>
+        </div>
+
+        <div class="kanban-column" id="col_bug" data-status="Bug">
+            <div class="column-header">
+                <span class="column-title">Bug</span>
+                <span class="cards-count">0</span>
+            </div>
+            <div class="card-list"></div>
+        </div>
+
+        <div class="kanban-column" id="col_done" data-status="Done">
+            <div class="column-header">
+                <span class="column-title">Done</span>
+                <span class="cards-count">0</span>
+            </div>
+            <div class="card-list"></div>
+        </div>
+    </main>
+
+    <div class="drawer" id="details-drawer">
+        <div class="drawer-header">
+            <h2 id="drawer-title">Story Details</h2>
+            <button class="close-btn" id="close-drawer-btn">&times;</button>
+        </div>
+        <pre class="json-viewer" id="drawer-json"></pre>
+    </div>
+
+    <script>
+        let boardState = {
+            "board": {
+                "columns": [
+                    { "id": "col_todo", "title": "Todo" },
+                    { "id": "col_user_story", "title": "User Story" },
+                    { "id": "col_review", "title": "Review" },
+                    { "id": "col_bug", "title": "Bug" },
+                    { "id": "col_done", "title": "Done" }
+                ]
+            },
+            "stories": [
+                {
+                    "userStory": {
+                        "id": "US_001.001",
+                        "title": "US_001.001 | Main Page > Viewing main page",
+                        "status": "User Story",
+                        "label": { "color": "green", "text": "User Story" },
+                        "feature": "Assessment API Processing",
+                        "asA": "client application",
+                        "iWantTo": "submit quiz answers via /api/analysis",
+                        "soThat": "I obtain deterministic calculations",
+                        "acceptanceCriteria": [
+                            {
+                                "scenarioId": "SC_001",
+                                "scenarioTitle": "Deterministic Assessment Score Calculation",
+                                "given": ["a valid AssessmentPayload containing quiz answers"],
+                                "when": ["a POST request is submitted to /api/analysis"],
+                                "then": [
+                                    "the response status should be 200 OK",
+                                    "the resulting coordinates X, Y, Z must be deterministically rounded to 2 decimal places"
+                                ]
+                            }
+                        ]
+                    }
+                },
+                {
+                    "userStory": {
+                        "id": "BUG_001.002",
+                        "title": "BUG_001.002 | Coordinate Fluctuation on Z Axis",
+                        "status": "Bug",
+                        "label": { "color": "red", "text": "Bug" },
+                        "feature": "Scoring Logic",
+                        "asA": "QA Engineer",
+                        "iWantTo": "fix coordinate drift",
+                        "soThat": "Z-axis calculations are stable"
+                    }
+                },
+                {
+                    "userStory": {
+                        "id": "US_002.001",
+                        "title": "US_002.001 | Implement Dark Factory BDD Runner",
+                        "status": "Todo",
+                        "label": { "color": "purple", "text": "Task" },
+                        "feature": "Test Automation",
+                        "asA": "developer",
+                        "iWantTo": "execute Gherkin from JSON",
+                        "soThat": "tests run without manual steps"
+                    }
+                }
+            ]
+        };
+
+        let draggedCardId = null;
+
+        function renderBoard(data) {
+            document.querySelectorAll('.card-list').forEach(el => el.innerHTML = '');
+
+            data.stories.forEach(item => {
+                const story = item.userStory;
+                const targetColumn = document.querySelector(`.kanban-column[data-status="${story.status}"]`);
+
+                if (targetColumn) {
+                    const cardList = targetColumn.querySelector('.card-list');
+                    const card = document.createElement('div');
+                    card.className = 'kanban-card';
+                    card.setAttribute('draggable', 'true');
+                    card.setAttribute('data-id', story.id);
+                    
+                    const labelColorClass = `label-${story.label.color || 'green'}`;
+
+                    card.innerHTML = `
+                        <div class="card-label ${labelColorClass}"></div>
+                        <div class="card-id-title">${story.title}</div>
+                        <div class="card-footer">
+                            <span>${story.id}</span>
+                            <span>Dark Factory READY</span>
+                        </div>
+                    `;
+
+                    card.addEventListener('dragstart', (e) => {
+                        draggedCardId = story.id;
+                        card.classList.add('dragging');
+                        e.dataTransfer.setData('text/plain', story.id);
+                    });
+
+                    card.addEventListener('dragend', () => {
+                        card.classList.remove('dragging');
+                        draggedCardId = null;
+                    });
+
+                    card.addEventListener('click', () => openDrawer(story));
+                    cardList.appendChild(card);
+                }
+            });
+
+            updateCardCounts();
+        }
+
+        function setupDragAndDropHandlers() {
+            const columns = document.querySelectorAll('.kanban-column');
+
+            columns.forEach(column => {
+                column.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    column.classList.add('drag-over');
+                });
+
+                column.addEventListener('dragleave', () => {
+                    column.classList.remove('drag-over');
+                });
+
+                column.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    column.classList.remove('drag-over');
+                    
+                    const targetStatus = column.getAttribute('data-status');
+                    if (draggedCardId && targetStatus) {
+                        moveCardStatus(draggedCardId, targetStatus);
+                    }
+                });
+            });
+        }
+
+        function moveCardStatus(storyId, newStatus) {
+            const storyItem = boardState.stories.find(s => s.userStory.id === storyId);
+            if (storyItem) {
+                storyItem.userStory.status = newStatus;
+                renderBoard(boardState);
+
+                fetch('/api/user-story/', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(storyItem.userStory)
+                }).catch(() => {});
+            }
+        }
+
+        function updateCardCounts() {
+            document.querySelectorAll('.kanban-column').forEach(col => {
+                const countEl = col.querySelector('.cards-count');
+                const actualCount = col.querySelector('.card-list').children.length;
+                countEl.textContent = actualCount;
+            });
+        }
+
+        const drawer = document.getElementById('details-drawer');
+        const drawerTitle = document.getElementById('drawer-title');
+        const drawerJson = document.getElementById('drawer-json');
+        const closeDrawerBtn = document.getElementById('close-drawer-btn');
+
+        function openDrawer(story) {
+            drawerTitle.textContent = story.id;
+            drawerJson.textContent = JSON.stringify(story, null, 2);
+            drawer.classList.add('open');
+        }
+
+        closeDrawerBtn.addEventListener('click', () => {
+            drawer.classList.remove('open');
+        });
+
+        document.getElementById('load-stories-btn').addEventListener('click', () => {
+            fetch('/api/user-story/')
+                .then(res => res.json())
+                .then(data => {
+                    boardState = data;
+                    renderBoard(boardState);
+                })
+                .catch(() => renderBoard(boardState));
+        });
+
+        document.getElementById('run-bdd-btn').addEventListener('click', () => {
+            alert('Triggering Dark Factory BDD execution via /api/bdd/run...');
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderBoard(boardState);
+            setupDragAndDropHandlers();
+        });
+    </script>
+</body>
+</html>

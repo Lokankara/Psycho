@@ -16,9 +16,9 @@
 * **Stories:** Created `verify_coordinate_calculation.story` to execute Given-When-Then scenarios.
 * **Runner:** Driven by JBehave `Embedder` wrapped inside a JUnit 5 `@Test` suite, bound to Gradle task `e2eTest`.
 
-#### 4. Iteration Artifacts (`/task/*.md`)
+#### 4. Iteration Artifacts (`/task/current/*.md`)
 
-Generated markdown documentation in the top-level `/task/` directory:
+Generated markdown documentation in the top-level `/task/current` directory:
 
 * `/task/user_story_acceptance.md` — User story specifications and Given-When-Then acceptance criteria.
 * `/task/bug_report_coordinates.md` — Root Cause Analysis (RCA) and JSON execution diffs for the $Z$-axis anomaly.

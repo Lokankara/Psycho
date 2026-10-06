@@ -2,24 +2,18 @@ package com.unconscious.collective.agile.service;
 
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
-import com.unconscious.collective.agile.model.entity.BddStatus;
-import com.unconscious.collective.agile.model.entity.KanbanColumn;
-import com.unconscious.collective.agile.model.entity.ProgramIncrement;
-import com.unconscious.collective.agile.model.entity.Sprint;
-import com.unconscious.collective.agile.model.entity.Task;
-import com.unconscious.collective.agile.dao.TaskRepository;
-import com.unconscious.collective.agile.model.entity.UserStory;
-import com.unconscious.collective.agile.dao.UserStoryRepository;
 import com.unconscious.collective.agile.dao.KanbanColumnRepository;
 import com.unconscious.collective.agile.dao.ProgramIncrementRepository;
 import com.unconscious.collective.agile.dao.SprintRepository;
+import com.unconscious.collective.agile.dao.TaskRepository;
+import com.unconscious.collective.agile.dao.UserStoryRepository;
 import com.unconscious.collective.agile.model.dto.BddExecutionResponse;
 import com.unconscious.collective.agile.model.dto.BoardResponse;
 import com.unconscious.collective.agile.model.dto.ColumnResponse;
@@ -28,14 +22,17 @@ import com.unconscious.collective.agile.model.dto.ProgramIncrementOption;
 import com.unconscious.collective.agile.model.dto.SprintOption;
 import com.unconscious.collective.agile.model.dto.StoryCard;
 import com.unconscious.collective.agile.model.dto.TaskCard;
-
+import com.unconscious.collective.agile.model.entity.BddStatus;
+import com.unconscious.collective.agile.model.entity.KanbanColumn;
+import com.unconscious.collective.agile.model.entity.ProgramIncrement;
+import com.unconscious.collective.agile.model.entity.Sprint;
+import com.unconscious.collective.agile.model.entity.Task;
+import com.unconscious.collective.agile.model.entity.UserStory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service
-public class AgileBoardService {
+public class AgileBoardService implements IAgileBoardOperations {
 
     private static final Logger LOG = LoggerFactory.getLogger(AgileBoardService.class);
     private static final DateTimeFormatter ISO = DateTimeFormatter.ISO_INSTANT;
@@ -44,19 +41,20 @@ public class AgileBoardService {
     private final SprintRepository sprintRepository;
     private final UserStoryRepository storyRepository;
     private final TaskRepository taskRepository;
-    private final KanbanColumnRepository repository;
+    private final KanbanColumnRepository columnRepository;
 
     public AgileBoardService(ProgramIncrementRepository incrementRepository, SprintRepository sprintRepository,
-            UserStoryRepository storyRepository, TaskRepository taskRepository, KanbanColumnRepository repository) {
+            UserStoryRepository storyRepository, TaskRepository taskRepository,
+            KanbanColumnRepository columnRepository) {
         this.incrementRepository = incrementRepository;
         this.sprintRepository = sprintRepository;
         this.storyRepository = storyRepository;
         this.taskRepository = taskRepository;
-        this.repository = repository;
+        this.columnRepository = columnRepository;
     }
 
     @Transactional(readOnly = true)
-    public BoardResponse board(Long programIncrementId, Long sprintId) {
+    public BoardResponse getBoard(Long programIncrementId, Long sprintId) {
         List<ProgramIncrement> allPis = incrementRepository.findAllByOrderByStartDateAsc();
         ProgramIncrement activePi = selectPi(allPis, programIncrementId);
         List<Sprint> piSprints = activePi == null
@@ -68,8 +66,11 @@ public class AgileBoardService {
                 : storyRepository.findBySprintIdOrderByCodeAsc(activeSprint.getId());
 
         Map<String, List<StoryCard>> storyGroups = groupStories(visible);
-        Map<String, List<TaskCard>> taskGroups = groupTasks(taskRepository.findAllByOrderByCodeAsc());
-        List<ColumnResponse> columnResponses = repository.findAllByOrderByPositionAsc().stream()
+        List<Task> visibleTasks = activeSprint == null
+                ? taskRepository.findAllByOrderByCodeAsc()
+                : taskRepository.findByUserStorySprintIdOrderByCodeAsc(activeSprint.getId());
+        Map<String, List<TaskCard>> taskGroups = groupTasks(visibleTasks);
+        List<ColumnResponse> columnResponses = columnRepository.findAllByOrderByPositionAscOrDefault().stream()
                 .map(column -> new ColumnResponse(
                         column.getCode(), column.getName(), column.getPosition(),
                         storyGroups.getOrDefault(column.getCode(), List.of()),
@@ -88,8 +89,8 @@ public class AgileBoardService {
     public Optional<StoryCard> moveStory(Long storyId, MoveRequest request) {
         return storyRepository.findById(storyId).map(story -> {
             story.setKanbanColumn(requireColumn(request.columnCode()));
-            storyRepository.save(story);
-            LOG.info("Story {} moved to {}", story.getCode(), story.getKanbanColumn().getCode());
+            UserStory saved = storyRepository.save(story);
+            LOG.info("Story {} moved to {}", saved.getCode(), saved.getKanbanColumn().getCode());
             return storyCard(story);
         });
     }
@@ -130,7 +131,7 @@ public class AgileBoardService {
         if (columnCode == null || columnCode.isBlank()) {
             throw new IllegalArgumentException("columnCode must not be blank");
         }
-        return repository.findByCode(columnCode.trim().toUpperCase(Locale.ROOT))
+        return columnRepository.findByCode(columnCode.trim().toUpperCase(Locale.ROOT))
                 .orElseThrow(() -> new IllegalArgumentException("Unknown kanban column: " + columnCode));
     }
 
@@ -166,21 +167,15 @@ public class AgileBoardService {
     }
 
     private Map<String, List<StoryCard>> groupStories(List<UserStory> visible) {
-        Map<String, List<StoryCard>> grouped = new LinkedHashMap<>();
-        for (UserStory story : visible) {
-            grouped.computeIfAbsent(story.getKanbanColumn().getCode(), key -> new ArrayList<>())
-                    .add(storyCard(story));
-        }
-        return grouped;
+        return visible.stream().collect(
+                Collectors.groupingBy(story -> story.getKanbanColumn().getCode(), LinkedHashMap::new,
+                        Collectors.mapping(this::storyCard, Collectors.toList())));
     }
 
     private Map<String, List<TaskCard>> groupTasks(List<Task> allTasks) {
-        Map<String, List<TaskCard>> grouped = new LinkedHashMap<>();
-        for (Task task : allTasks) {
-            grouped.computeIfAbsent(task.getKanbanColumn().getCode(), key -> new ArrayList<>())
-                    .add(taskCard(task));
-        }
-        return grouped;
+        return allTasks.stream().collect(
+                Collectors.groupingBy(task -> task.getKanbanColumn().getCode(), LinkedHashMap::new,
+                        Collectors.mapping(this::taskCard, Collectors.toList())));
     }
 
     private ProgramIncrementOption piOption(ProgramIncrement pi) {

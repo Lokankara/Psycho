@@ -1,26 +1,21 @@
 ```
 taskkill /F /IM java.exe /T
 
-./gradlew :rest:bootRun :ui:bootRun :kanban:bootRun :agile:bootRun --parallel
-
-./gradlew :bdd:bootRun 
+./gradlew :rest:bootRun :ui:bootRun :kanban:bootRun :agile:bootRun --parallel 
 
 ./gradlew clean build
-
-./gradlew bootRun
 
 ./gradlew.bat clean build --no-daemon 2>&1
 
 ./gradlew runAll --parallel
 
-./gradlew :rest:bootRun :agile:bootRun :ui:bootRun :kanban:bootRun --parallel
-
+./gradlew :qa:e2eTest  --no-daemon
 
 ```
 
 'rest' - quiz-api  
 'ui' quiz-ui
-'bdd' - e2re
+'bdd' - e2e
 'kanban' - dashboard-ui
 'agile' - kanban-api
 

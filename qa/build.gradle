@@ -1,0 +1,49 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '4.1.1'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation("tools.jackson.core:jackson-databind:3.2.3")
+    implementation("tools.jackson.core:jackson-core:3.2.3")
+    implementation("com.fasterxml.jackson.core:jackson-annotations:2.22")
+    implementation 'org.slf4j:slf4j-api'
+    implementation 'io.rest-assured:rest-assured:5.5.0'
+    implementation 'com.codeborne:selenide:7.18.2'
+    implementation 'org.jbehave:jbehave-core:5.2.0'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.3'
+    implementation 'org.junit.vintage:junit-vintage-engine'
+}
+
+tasks.register('e2eTest', Test) {
+    description = 'Runs JBehave BDD stories via JUnit Platform'
+    group = 'verification'
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.main.output.classesDirs
+    classpath = sourceSets.main.runtimeClasspath
+    include '**/StoryRunner.class'
+    mustRunAfter(tasks.named('test'))
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+tasks.named('bootJar') {
+    enabled = false
+}
+
+tasks.named('bootBuildImage') {
+    enabled = false
+}

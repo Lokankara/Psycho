@@ -1,0 +1,102 @@
+{
+  "name": "Allure Reporting & Dark Factory Integration Board",
+  "desc": "Track Allure test execution results, report artifact generation, and BDD test suites",
+  "closed": false,
+  "lists": [
+    {
+      "id": "list-allure-integration",
+      "name": "Allure Reporting Integration Tasks",
+      "closed": false,
+      "pos": 1000
+    },
+    {
+      "id": "list-test-runs",
+      "name": "Allure Execution Runs",
+      "closed": false,
+      "pos": 2000
+    },
+    {
+      "id": "list-allure-artifacts",
+      "name": "Generated Artifacts & Reports",
+      "closed": false,
+      "pos": 3000
+    }
+  ],
+  "cards": [
+    {
+      "id": "card-allure-001",
+      "idList": "list-allure-integration",
+      "name": "Add Allure JBehave & JUnit Dependencies",
+      "desc": "Configure allure-jbehave and allure-junit5 plugins in build environment to capture step definitions and attachment logs",
+      "closed": false,
+      "pos": 1000,
+      "labels": [
+        {
+          "id": "lbl-task",
+          "name": "Task",
+          "color": "purple"
+        }
+      ]
+    },
+    {
+      "id": "card-allure-002",
+      "idList": "list-allure-integration",
+      "name": "Configure Allure Listener for Dark Factory Engine",
+      "desc": "Inject Allure lifecycle hooks to convert JSON scenario definitions directly into Allure test results and attachments",
+      "closed": false,
+      "pos": 2000,
+      "labels": [
+        {
+          "id": "lbl-feature",
+          "name": "Feature",
+          "color": "green"
+        }
+      ]
+    },
+    {
+      "id": "run-allure-20261006-031500",
+      "idList": "list-test-runs",
+      "name": "Run #101: BDD E2E Suite Execution",
+      "desc": "Timestamp: 06.10.2026, 03:15:00\nSuite: verify_coordinate_calculation.story\nStatus: Passed\nDuration: 1240ms\nAttachments: allure-results/allure-result.json",
+      "closed": false,
+      "pos": 1000,
+      "labels": [
+        {
+          "id": "lbl-passed",
+          "name": "Status: Passed",
+          "color": "green"
+        }
+      ]
+    },
+    {
+      "id": "run-allure-20261006-024000",
+      "idList": "list-test-runs",
+      "name": "Run #100: Coordinate Determinism Test",
+      "desc": "Timestamp: 06.10.2026, 02:40:00\nSuite: dark_factory_scenarios.json\nStatus: Failed\nFailure: Z-axis mismatch (-0.67 vs -1.00)\nAttachments: logs/dark_factory.err",
+      "closed": false,
+      "pos": 2000,
+      "labels": [
+        {
+          "id": "lbl-failed",
+          "name": "Status: Failed",
+          "color": "red"
+        }
+      ]
+    },
+    {
+      "id": "art-allure-report-01",
+      "idList": "list-allure-artifacts",
+      "name": "Allure HTML Report - PI-1 Run",
+      "desc": "Generated HTML static report from ./allure-results to ./allure-report\nTotal Scenarios: 12\nPassed: 11\nFailed: 1",
+      "closed": false,
+      "pos": 1000,
+      "labels": [
+        {
+          "id": "lbl-artifact",
+          "name": "Report Artifact",
+          "color": "yellow"
+        }
+      ]
+    }
+  ]
+}
